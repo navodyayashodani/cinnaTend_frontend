@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getUser } from '../services/api';
-import { tenderAPI } from '../services/api';
+import { tenderAPI, bidAPI } from '../services/api';
 import CreateTenderModal from './CreateTenderModal';
 
 function ManufacturerDashboard() {
@@ -14,6 +14,7 @@ function ManufacturerDashboard() {
   const [tenderBids, setTenderBids] = useState([]);
   const [showBidsModal, setShowBidsModal] = useState(false);
   const [loadingBids, setLoadingBids] = useState(false);
+  const [acceptingBid, setAcceptingBid] = useState(null);
 
   useEffect(() => {
     fetchTenders();
@@ -52,6 +53,43 @@ function ManufacturerDashboard() {
     }
   };
 
+  const isTenderClosed = (tender) => {
+    const endDate = new Date(tender.end_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return endDate < today;
+  };
+
+  const hasAcceptedBid = () => {
+    return tenderBids.some(bid => bid.status === 'accepted');
+  };
+
+  const handleAcceptBid = async (bidId) => {
+    if (!window.confirm('Are you sure you want to accept this bid? This will reject all other bids for this tender.')) {
+      return;
+    }
+
+    setAcceptingBid(bidId);
+
+    try {
+      await bidAPI.acceptBid(bidId);
+      
+      // Refresh bids to show updated status
+      const response = await tenderAPI.getTenderBids(selectedTender.id);
+      setTenderBids(response.data);
+      
+      // Refresh tenders to update counts
+      fetchTenders();
+      
+      alert('Bid accepted successfully!');
+    } catch (error) {
+      console.error('Error accepting bid:', error);
+      alert(error.response?.data?.error || 'Failed to accept bid. Please try again.');
+    } finally {
+      setAcceptingBid(null);
+    }
+  };
+
   const getBidStats = () => {
     if (tenderBids.length === 0) return null;
     
@@ -73,7 +111,18 @@ function ManufacturerDashboard() {
     }
   };
 
+  const getBidStatusBgColor = (status) => {
+    switch (status) {
+      case 'pending': return '#fff3cd';
+      case 'accepted': return '#d4edda';
+      case 'rejected': return '#f8d7da';
+      default: return '#e2e3e5';
+    }
+  };
+
   const stats = selectedTender && tenderBids.length > 0 ? getBidStats() : null;
+  const tenderClosed = selectedTender && isTenderClosed(selectedTender);
+  const bidAccepted = hasAcceptedBid();
 
   return (
     <div style={styles.container}>
@@ -146,50 +195,63 @@ function ManufacturerDashboard() {
           </div>
         ) : (
           <div style={styles.tenderGrid}>
-            {tenders.map(tender => (
-              <div key={tender.id} style={styles.tenderCard}>
-                <div style={styles.tenderHeader}>
-                  <span style={styles.tenderNumber}>{tender.tender_number}</span>
-                  <span style={{
-                    ...styles.statusBadge,
-                    backgroundColor: tender.status === 'active' ? '#27ae60' : '#95a5a6'
-                  }}>
-                    {tender.status}
-                  </span>
-                </div>
-                <h3 style={styles.tenderTitle}>{tender.tender_title}</h3>
-                <div style={styles.tenderDetails}>
-                  <p><strong>Oil Type:</strong> {tender.oil_type}</p>
-                  <p><strong>Quantity:</strong> {tender.quantity} L/Kg</p>
-                  {tender.quality_grade && (
-                    <p style={styles.qualityBadge}>
-                      <strong>Quality:</strong> {tender.quality_grade} ({tender.quality_score}/100)
+            {tenders.map(tender => {
+              const closed = isTenderClosed(tender);
+              return (
+                <div key={tender.id} style={styles.tenderCard}>
+                  <div style={styles.tenderHeader}>
+                    <span style={styles.tenderNumber}>{tender.tender_number}</span>
+                    <span style={{
+                      ...styles.statusBadge,
+                      backgroundColor: tender.status === 'active' ? '#27ae60' : '#95a5a6'
+                    }}>
+                      {tender.status}
+                    </span>
+                  </div>
+                  <h3 style={styles.tenderTitle}>{tender.tender_title}</h3>
+                  <div style={styles.tenderDetails}>
+                    <p><strong>Oil Type:</strong> {tender.oil_type}</p>
+                    <p><strong>Quantity:</strong> {tender.quantity} L/Kg</p>
+                    {tender.quality_grade && (
+                      <p style={styles.qualityBadge}>
+                        <strong>Quality:</strong> {tender.quality_grade} ({tender.quality_score}/100)
+                      </p>
+                    )}
+                    <p style={{
+                      fontWeight: 'bold',
+                      color: tender.bid_count > 0 ? '#27ae60' : '#7f8c8d'
+                    }}>
+                      <strong>Bids Received:</strong> {tender.bid_count || 0}
                     </p>
-                  )}
-                  <p style={{
-                    fontWeight: 'bold',
-                    color: tender.bid_count > 0 ? '#27ae60' : '#7f8c8d'
-                  }}>
-                    <strong>Bids Received:</strong> {tender.bid_count || 0}
-                  </p>
+                    {closed && (
+                      <p style={{
+                        fontWeight: 'bold',
+                        color: '#e74c3c',
+                        marginTop: '0.5rem'
+                      }}>
+                        ⏰ Tender Closed - Ready to Accept Bid
+                      </p>
+                    )}
+                  </div>
+                  <div style={styles.tenderFooter}>
+                    <span style={styles.dateText}>
+                      {new Date(tender.start_date).toLocaleDateString()} - {new Date(tender.end_date).toLocaleDateString()}
+                    </span>
+                    <button 
+                      style={{
+                        ...styles.viewBtn,
+                        ...(tender.bid_count === 0 ? styles.viewBtnDisabled : {}),
+                        ...(closed && tender.bid_count > 0 ? styles.viewBtnHighlight : {})
+                      }}
+                      onClick={() => handleViewBids(tender)}
+                      disabled={tender.bid_count === 0}
+                    >
+                      {tender.bid_count === 0 ? 'No Bids' : closed ? `⚡ Select Winner (${tender.bid_count})` : `View Bids (${tender.bid_count})`}
+                    </button>
+                  </div>
                 </div>
-                <div style={styles.tenderFooter}>
-                  <span style={styles.dateText}>
-                    {new Date(tender.start_date).toLocaleDateString()} - {new Date(tender.end_date).toLocaleDateString()}
-                  </span>
-                  <button 
-                    style={{
-                      ...styles.viewBtn,
-                      ...(tender.bid_count === 0 ? styles.viewBtnDisabled : {})
-                    }}
-                    onClick={() => handleViewBids(tender)}
-                    disabled={tender.bid_count === 0}
-                  >
-                    {tender.bid_count === 0 ? 'No Bids' : `View Bids (${tender.bid_count})`}
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -208,7 +270,10 @@ function ManufacturerDashboard() {
             <div style={styles.modalHeader}>
               <div>
                 <h2 style={styles.modalTitle}>Bids for {selectedTender.tender_title}</h2>
-                <p style={styles.modalSubtitle}>{selectedTender.tender_number}</p>
+                <p style={styles.modalSubtitle}>
+                  {selectedTender.tender_number} 
+                  {tenderClosed && <span style={styles.closedBadge}> • Tender Closed</span>}
+                </p>
               </div>
               <button
                 style={styles.closeBtn}
@@ -229,6 +294,27 @@ function ManufacturerDashboard() {
                 </div>
               ) : (
                 <>
+                  {/* Notice for closed tenders */}
+                  {tenderClosed && !bidAccepted && (
+                    <div style={styles.closedNotice}>
+                      <h3 style={styles.closedNoticeTitle}>🎯 Tender Closed - Time to Select Winner!</h3>
+                      <p style={styles.closedNoticeText}>
+                        The bidding period has ended. Review all bids below and select the winning bid. 
+                        Once you accept a bid, all other bids will be automatically rejected.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Show accepted bid prominently */}
+                  {bidAccepted && (
+                    <div style={styles.acceptedBidNotice}>
+                      <h3 style={styles.acceptedNoticeTitle}>🎉 Winner Selected!</h3>
+                      <p style={styles.acceptedNoticeText}>
+                        You have accepted a bid for this tender. The winning buyer has been notified.
+                      </p>
+                    </div>
+                  )}
+
                   {/* Bid Statistics */}
                   {stats && (
                     <div style={styles.statsContainer}>
@@ -247,8 +333,8 @@ function ManufacturerDashboard() {
                           <span style={styles.statValue}>${stats.average.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
                         </div>
                         <div style={styles.statBox}>
-                          <span style={styles.statLabel}>Total Value</span>
-                          <span style={styles.statValue}>${stats.total.toLocaleString()}</span>
+                          <span style={styles.statLabel}>Total Bids</span>
+                          <span style={styles.statValue}>{tenderBids.length}</span>
                         </div>
                       </div>
                     </div>
@@ -258,9 +344,20 @@ function ManufacturerDashboard() {
                   <div style={styles.bidsList}>
                     <h3 style={styles.bidsListTitle}>All Bids ({tenderBids.length})</h3>
                     {tenderBids.map((bid, index) => (
-                      <div key={bid.id} style={styles.bidCard}>
+                      <div 
+                        key={bid.id} 
+                        style={{
+                          ...styles.bidCard,
+                          ...(bid.status === 'accepted' ? styles.bidCardAccepted : {}),
+                          ...(bid.status === 'rejected' ? styles.bidCardRejected : {}),
+                          backgroundColor: getBidStatusBgColor(bid.status)
+                        }}
+                      >
                         <div style={styles.bidHeader}>
-                          <div style={styles.bidNumber}>Bid #{index + 1}</div>
+                          <div style={styles.bidNumber}>
+                            Bid #{index + 1}
+                            {bid.status === 'accepted' && <span style={styles.winnerBadge}> 🏆 WINNER</span>}
+                          </div>
                           <span
                             style={{
                               ...styles.bidStatus,
@@ -287,8 +384,18 @@ function ManufacturerDashboard() {
                           </div>
 
                           <div style={styles.bidRow}>
+                            <span style={styles.bidLabel}>Phone:</span>
+                            <span style={styles.bidValue}>
+                              {bid.buyer_details?.phone_number || 'N/A'}
+                            </span>
+                          </div>
+
+                          <div style={styles.bidRow}>
                             <span style={styles.bidLabel}>Bid Amount:</span>
-                            <span style={styles.bidAmount}>
+                            <span style={{
+                              ...styles.bidAmount,
+                              ...(bid.status === 'accepted' ? { fontSize: '1.5rem' } : {})
+                            }}>
                               ${parseFloat(bid.bid_amount).toLocaleString()}
                             </span>
                           </div>
@@ -315,11 +422,39 @@ function ManufacturerDashboard() {
                           )}
                         </div>
 
-                        {/* Action buttons can be added here later */}
-                        {/* <div style={styles.bidActions}>
-                          <button style={styles.acceptBtn}>Accept</button>
-                          <button style={styles.rejectBtn}>Reject</button>
-                        </div> */}
+                        {/* Action Buttons - Only show if tender is closed and no bid accepted yet */}
+                        {tenderClosed && !bidAccepted && bid.status === 'pending' && (
+                          <div style={styles.bidActions}>
+                            <button
+                              style={{
+                                ...styles.acceptBtn,
+                                ...(acceptingBid === bid.id ? styles.acceptBtnLoading : {})
+                              }}
+                              onClick={() => handleAcceptBid(bid.id)}
+                              disabled={acceptingBid !== null}
+                            >
+                              {acceptingBid === bid.id ? '⏳ Accepting...' : '✅ Accept This Bid'}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Show acceptance message for accepted bid */}
+                        {bid.status === 'accepted' && (
+                          <div style={styles.acceptedMessage}>
+                            <p style={styles.acceptedMessageText}>
+                              ✨ This bid has been accepted! The buyer has been notified and will proceed with the order.
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Show rejection message for rejected bids */}
+                        {bid.status === 'rejected' && (
+                          <div style={styles.rejectedMessage}>
+                            <p style={styles.rejectedMessageText}>
+                              This bid was automatically rejected because another bid was accepted.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -500,6 +635,10 @@ const styles = {
     backgroundColor: '#95a5a6',
     cursor: 'not-allowed',
   },
+  viewBtnHighlight: {
+    backgroundColor: '#e74c3c',
+    animation: 'pulse 2s infinite',
+  },
   // Modal Styles
   modalOverlay: {
     position: 'fixed',
@@ -541,6 +680,10 @@ const styles = {
     color: '#7f8c8d',
     fontSize: '0.9rem',
   },
+  closedBadge: {
+    color: '#e74c3c',
+    fontWeight: 'bold',
+  },
   closeBtn: {
     background: 'none',
     border: 'none',
@@ -562,6 +705,37 @@ const styles = {
     padding: '3rem',
     color: '#7f8c8d',
     fontSize: '1.1rem',
+  },
+  // Notice Styles
+  closedNotice: {
+    backgroundColor: '#fff3cd',
+    border: '2px solid #ffc107',
+    borderRadius: '8px',
+    padding: '1.5rem',
+    marginBottom: '2rem',
+  },
+  closedNoticeTitle: {
+    margin: '0 0 0.5rem 0',
+    color: '#856404',
+  },
+  closedNoticeText: {
+    margin: 0,
+    color: '#856404',
+  },
+  acceptedBidNotice: {
+    backgroundColor: '#d4edda',
+    border: '2px solid #28a745',
+    borderRadius: '8px',
+    padding: '1.5rem',
+    marginBottom: '2rem',
+  },
+  acceptedNoticeTitle: {
+    margin: '0 0 0.5rem 0',
+    color: '#155724',
+  },
+  acceptedNoticeText: {
+    margin: 0,
+    color: '#155724',
   },
   // Statistics Styles
   statsContainer: {
@@ -613,7 +787,16 @@ const styles = {
     padding: '1.5rem',
     borderRadius: '8px',
     marginBottom: '1rem',
-    border: '1px solid #e0e0e0',
+    border: '2px solid #e0e0e0',
+    transition: 'all 0.3s',
+  },
+  bidCardAccepted: {
+    border: '3px solid #28a745',
+    boxShadow: '0 4px 12px rgba(40, 167, 69, 0.3)',
+  },
+  bidCardRejected: {
+    opacity: 0.7,
+    border: '2px solid #dc3545',
   },
   bidHeader: {
     display: 'flex',
@@ -627,6 +810,10 @@ const styles = {
     fontWeight: 'bold',
     color: '#2c3e50',
     fontSize: '1.1rem',
+  },
+  winnerBadge: {
+    color: '#f39c12',
+    fontSize: '1rem',
   },
   bidStatus: {
     fontWeight: 'bold',
@@ -643,31 +830,79 @@ const styles = {
     alignItems: 'flex-start',
     paddingBottom: '0.5rem',
     borderBottom: '1px solid #e0e0e0',
-  },
-  bidLabel: {
-    fontWeight: '500',
-    color: '#7f8c8d',
-    minWidth: '120px',
-  },
-  bidValue: {
-    color: '#2c3e50',
-    fontWeight: '500',
-    textAlign: 'right',
-    flex: 1,
-  },
-  bidAmount: {
-    fontSize: '1.3rem',
-    fontWeight: 'bold',
-    color: '#27ae60',
-    textAlign: 'right',
-    flex: 1,
-  },
-  bidMessage: {
-    color: '#2c3e50',
-    textAlign: 'right',
-    flex: 1,
-    fontStyle: 'italic',
-  },
+},
+bidLabel: {
+fontWeight: '500',
+color: '#7f8c8d',
+minWidth: '120px',
+},
+bidValue: {
+color: '#2c3e50',
+fontWeight: '500',
+textAlign: 'right',
+flex: 1,
+},
+bidAmount: {
+fontSize: '1.3rem',
+fontWeight: 'bold',
+color: '#27ae60',
+textAlign: 'right',
+flex: 1,
+},
+bidMessage: {
+color: '#2c3e50',
+textAlign: 'right',
+flex: 1,
+fontStyle: 'italic',
+},
+// Action Buttons
+bidActions: {
+marginTop: '1rem',
+paddingTop: '1rem',
+borderTop: '2px solid #e0e0e0',
+display: 'flex',
+gap: '1rem',
+},
+acceptBtn: {
+flex: 1,
+padding: '0.75rem 1.5rem',
+backgroundColor: '#28a745',
+color: '#fff',
+border: 'none',
+borderRadius: '6px',
+cursor: 'pointer',
+fontSize: '1rem',
+fontWeight: 'bold',
+transition: 'all 0.3s',
+},
+acceptBtnLoading: {
+backgroundColor: '#95a5a6',
+cursor: 'not-allowed',
+},
+// Messages
+acceptedMessage: {
+marginTop: '1rem',
+padding: '1rem',
+backgroundColor: '#d4edda',
+border: '2px solid #28a745',
+borderRadius: '6px',
+},
+acceptedMessageText: {
+margin: 0,
+color: '#155724',
+fontWeight: '500',
+},
+rejectedMessage: {
+marginTop: '1rem',
+padding: '1rem',
+backgroundColor: '#f8d7da',
+border: '2px solid #dc3545',
+borderRadius: '6px',
+},
+rejectedMessageText: {
+margin: 0,
+color: '#721c24',
+fontWeight: '500',
+},
 };
-
 export default ManufacturerDashboard;

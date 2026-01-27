@@ -1,13 +1,14 @@
 // src/components/LoginModal.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI, setAuthToken } from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext'; // ✅ Import useAuth
 
 function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuth(); // ✅ Get login function from context
+  
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -15,6 +16,20 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // ✅ Reset form when modal opens or closes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({ username: '', password: '' });
+      setErrors({});
+      setServerError('');
+    } else {
+      // Also reset when modal closes
+      setFormData({ username: '', password: '' });
+      setErrors({});
+      setServerError('');
+    }
+  }, [isOpen]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,23 +56,45 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
     setServerError('');
 
     try {
+      console.log('Attempting login...');
       const response = await authAPI.login({
         username: formData.username,
         password: formData.password,
       });
       
+      console.log('Login response:', response.data);
+      
+      // ✅ Save tokens
       setAuthToken(response.data.access, response.data.refresh);
+      
+      // ✅ THIS IS THE KEY - Update global auth state using context
       login(response.data.user);
       
-      navigate(
-        response.data.user.role === 'manufacturer'
-          ? '/manufacturer-dashboard'
-          : '/buyer-dashboard'
-      );
+      console.log('User logged in and context updated:', response.data.user);
+      
+      // ✅ Close modal first
       onClose();
+      
+      // Navigate to appropriate dashboard
+      const dashboardPath = response.data.user.role === 'manufacturer'
+        ? '/manufacturer-dashboard'
+        : '/buyer-dashboard';
+      
+      console.log('Navigating to:', dashboardPath);
+      
+      // ✅ Small delay to ensure state updates propagate
+      setTimeout(() => {
+        navigate(dashboardPath);
+      }, 100);
+      
     } catch (err) {
+      console.error('Login error:', err);
+      console.error('Error response:', err.response?.data);
+      
       setServerError(
-        err.response?.data?.error || 'Login failed. Please try again.'
+        err.response?.data?.error || 
+        err.response?.data?.detail ||
+        'Login failed. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -98,6 +135,7 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
                 placeholder="Enter your username"
                 value={formData.username}
                 onChange={handleChange}
+                autoComplete="username"
                 style={{
                   ...styles.input,
                   ...(errors.username ? styles.inputError : {})
@@ -119,6 +157,7 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
+                autoComplete="current-password"
                 style={{
                   ...styles.input,
                   ...(errors.password ? styles.inputError : {})
@@ -130,16 +169,6 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
             )}
           </div>
 
-          <div style={styles.rememberForgot}>
-            <label style={styles.checkboxLabel}>
-              <input type="checkbox" style={styles.checkbox} />
-              Remember me
-            </label>
-            <button type="button" style={styles.forgotBtn}>
-              Forgot password?
-            </button>
-          </div>
-
           <button 
             type="submit" 
             disabled={loading}
@@ -148,14 +177,7 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
               ...(loading ? styles.submitBtnDisabled : {})
             }}
           >
-            {loading ? (
-              <>
-                <span style={styles.spinner}></span>
-                Logging in...
-              </>
-            ) : (
-              'Login'
-            )}
+            {loading ? 'Logging in...' : 'Login'}
           </button>
 
           <div style={styles.footer}>
@@ -187,7 +209,6 @@ const styles = {
     alignItems: 'center',
     zIndex: 1000,
     backdropFilter: 'blur(4px)',
-    animation: 'fadeIn 0.3s ease',
   },
   modal: {
     backgroundColor: '#fff',
@@ -196,7 +217,6 @@ const styles = {
     maxWidth: '420px',
     boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
     overflow: 'hidden',
-    animation: 'slideUp 0.3s ease',
   },
   header: {
     display: 'flex',
@@ -226,7 +246,6 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: '4px',
-    transition: 'all 0.2s',
   },
   form: {
     padding: '2rem',
@@ -271,35 +290,6 @@ const styles = {
     fontSize: '0.85rem',
     marginTop: '0.25rem',
   },
-  rememberForgot: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '1.5rem',
-    fontSize: '0.85rem',
-  },
-  checkboxLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    color: '#7f8c8d',
-    cursor: 'pointer',
-  },
-  checkbox: {
-    cursor: 'pointer',
-    width: '16px',
-    height: '16px',
-  },
-  forgotBtn: {
-    background: 'none',
-    border: 'none',
-    color: '#3498db',
-    cursor: 'pointer',
-    fontSize: '0.85rem',
-    fontWeight: '500',
-    padding: 0,
-    textDecoration: 'underline',
-  },
   submitBtn: {
     width: '100%',
     padding: '0.875rem',
@@ -311,10 +301,7 @@ const styles = {
     fontWeight: '600',
     cursor: 'pointer',
     transition: 'all 0.3s',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '0.5rem',
+    marginTop: '1rem',
   },
   submitBtnDisabled: {
     backgroundColor: '#95a5a6',
@@ -351,14 +338,6 @@ const styles = {
     marginLeft: '0.25rem',
     padding: '0.25rem',
     textDecoration: 'underline',
-  },
-  spinner: {
-    width: '16px',
-    height: '16px',
-    border: '2px solid rgba(255, 255, 255, 0.3)',
-    borderTop: '2px solid #fff',
-    borderRadius: '50%',
-    animation: 'spin 0.8s linear infinite',
   },
 };
 

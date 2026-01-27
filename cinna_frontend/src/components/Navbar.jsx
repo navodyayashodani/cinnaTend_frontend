@@ -1,15 +1,33 @@
+// src/components/Navbar.jsx
+
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { authAPI, removeAuthToken } from '../services/api';
 
 function Navbar({ onLoginClick, onRegisterClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      // Try to blacklist the refresh token on the server
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (refreshToken) {
+        await authAPI.logout(refreshToken);
+      }
+    } catch (error) {
+      console.error('Logout API error:', error);
+      // Continue with logout even if API call fails
+    } finally {
+      // ✅ Clear auth state and tokens
+      removeAuthToken(); // Clear localStorage
+      logout(); // Clear context state
+      
+      // Navigate to home
+      navigate('/');
+    }
   };
 
   const handleBrandClick = () => {
@@ -169,6 +187,9 @@ const styles = {
     border: '2px solid #fff',
     borderRadius: '6px',
     cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '500',
+    transition: 'all 0.3s',
   },
   registerBtn: {
     padding: '0.6rem 1.75rem',
@@ -177,6 +198,9 @@ const styles = {
     border: '2px solid #27ae60',
     borderRadius: '6px',
     cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '500',
+    transition: 'all 0.3s',
   },
   logoutBtn: {
     padding: '0.6rem 1.75rem',
@@ -185,6 +209,9 @@ const styles = {
     border: '2px solid #e74c3c',
     borderRadius: '6px',
     cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '500',
+    transition: 'all 0.3s',
   },
 };
 
