@@ -106,7 +106,16 @@ export const bidAPI = {
   getAllBids: () => api.get('/bids/'),
   getBid: (id) => api.get(`/bids/${id}/`),
   createBid: (bidData) => api.post('/bids/', bidData),
-  updateBid: (id, bidData) => api.put(`/bids/${id}/`, bidData),
+  // ✅ FIXED: Use PATCH for partial updates (only bid_amount and message)
+  updateBid: (id, bidData) => {
+    // When updating a bid, only send bid_amount and message
+    // Do NOT send the tender field
+    const updateData = {
+      bid_amount: bidData.bid_amount,
+      message: bidData.message
+    };
+    return api.patch(`/bids/${id}/`, updateData);
+  },
   patchBid: (id, bidData) => api.patch(`/bids/${id}/`, bidData),
   deleteBid: (id) => api.delete(`/bids/${id}/`),
   acceptBid: (bidId) => api.post(`/bids/${bidId}/accept/`),

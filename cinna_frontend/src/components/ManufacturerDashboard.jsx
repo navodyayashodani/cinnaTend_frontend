@@ -78,7 +78,7 @@ function ManufacturerDashboard() {
       const response = await tenderAPI.getTenderBids(selectedTender.id);
       setTenderBids(response.data);
       
-      // Refresh tenders to update counts
+      // Refresh tenders to update counts and status
       fetchTenders();
       
       alert('Bid accepted successfully!');
@@ -223,13 +223,22 @@ function ManufacturerDashboard() {
                     }}>
                       <strong>Bids Received:</strong> {tender.bid_count || 0}
                     </p>
-                    {closed && (
+                    {closed && tender.status !== 'closed' && (
                       <p style={{
                         fontWeight: 'bold',
                         color: '#e74c3c',
                         marginTop: '0.5rem'
                       }}>
                         ⏰ Tender Closed - Ready to Accept Bid
+                      </p>
+                    )}
+                    {tender.status === 'closed' && (
+                      <p style={{
+                        fontWeight: 'bold',
+                        color: '#28a745',
+                        marginTop: '0.5rem'
+                      }}>
+                        ✅ Winner Selected - Tender Complete
                       </p>
                     )}
                   </div>
@@ -241,12 +250,20 @@ function ManufacturerDashboard() {
                       style={{
                         ...styles.viewBtn,
                         ...(tender.bid_count === 0 ? styles.viewBtnDisabled : {}),
-                        ...(closed && tender.bid_count > 0 ? styles.viewBtnHighlight : {})
+                        ...(closed && tender.bid_count > 0 && tender.status !== 'closed' ? styles.viewBtnHighlight : {}),
+                        ...(tender.status === 'closed' ? styles.viewBtnClosed : {})
                       }}
                       onClick={() => handleViewBids(tender)}
                       disabled={tender.bid_count === 0}
                     >
-                      {tender.bid_count === 0 ? 'No Bids' : closed ? `⚡ Select Winner (${tender.bid_count})` : `View Bids (${tender.bid_count})`}
+                      {tender.bid_count === 0 
+                        ? 'No Bids' 
+                        : tender.status === 'closed'
+                        ? '✅ Winner Selected'
+                        : closed 
+                        ? `⚡ Select Winner (${tender.bid_count})` 
+                        : `View Bids (${tender.bid_count})`
+                      }
                     </button>
                   </div>
                 </div>
@@ -328,10 +345,10 @@ function ManufacturerDashboard() {
                           <span style={styles.statLabel}>Lowest Bid</span>
                           <span style={styles.statValue}>${stats.lowest.toLocaleString()}</span>
                         </div>
-                        <div style={styles.statBox}>
+                        {/*<div style={styles.statBox}>
                           <span style={styles.statLabel}>Average Bid</span>
                           <span style={styles.statValue}>${stats.average.toLocaleString(undefined, {maximumFractionDigits: 2})}</span>
-                        </div>
+                        </div>*/}
                         <div style={styles.statBox}>
                           <span style={styles.statLabel}>Total Bids</span>
                           <span style={styles.statValue}>{tenderBids.length}</span>
@@ -639,6 +656,10 @@ const styles = {
     backgroundColor: '#e74c3c',
     animation: 'pulse 2s infinite',
   },
+  viewBtnClosed: {
+    backgroundColor: '#28a745',
+    cursor: 'pointer',
+  },
   // Modal Styles
   modalOverlay: {
     position: 'fixed',
@@ -906,3 +927,4 @@ fontWeight: '500',
 },
 };
 export default ManufacturerDashboard;
+

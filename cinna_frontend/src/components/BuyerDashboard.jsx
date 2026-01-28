@@ -23,38 +23,38 @@ function BuyerDashboard() {
   }, []);
 
   const fetchData = async () => {
-  setLoading(true);
-  try {
-    // Check if user is logged in
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      console.error('No authentication token found');
-      alert('Please log in to continue');
-      window.location.href = '/login';
-      return;
-    }
+    setLoading(true);
+    try {
+      // Check if user is logged in
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        console.error('No authentication token found');
+        alert('Please log in to continue');
+        window.location.href = '/login';
+        return;
+      }
 
-    const [tendersRes, bidsRes] = await Promise.all([
-      tenderAPI.getAllTenders(),
-      bidAPI.getAllBids()
-    ]);
-    setTenders(tendersRes.data);
-    setMyBids(bidsRes.data);
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    
-    // Handle 401 Unauthorized
-    if (error.response && error.response.status === 401) {
-      alert('Your session has expired. Please log in again.');
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      const [tendersRes, bidsRes] = await Promise.all([
+        tenderAPI.getAllTenders(),
+        bidAPI.getAllBids()
+      ]);
+      setTenders(tendersRes.data);
+      setMyBids(bidsRes.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      
+      // Handle 401 Unauthorized
+      if (error.response && error.response.status === 401) {
+        alert('Your session has expired. Please log in again.');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const getFilteredTenders = () => {
     if (filter === 'all') return tenders;
@@ -117,19 +117,24 @@ function BuyerDashboard() {
     try {
       const existingBid = myBids.find(bid => bid.tender === selectedTender.id);
       
-      const bidData = {
-        tender: selectedTender.id,
-        bid_amount: parseFloat(bidForm.bid_amount),
-        message: bidForm.message
-      };
-
       if (existingBid) {
-        // Update existing bid
-        await bidAPI.updateBid(existingBid.id, bidData);
+        // ✅ FIXED: When updating, only send bid_amount and message
+        const updateData = {
+          bid_amount: parseFloat(bidForm.bid_amount),
+          message: bidForm.message
+        };
+        
+        await bidAPI.updateBid(existingBid.id, updateData);
         alert('Bid updated successfully!');
       } else {
-        // Create new bid
-        await bidAPI.createBid(bidData);
+        // When creating new bid, include tender
+        const createData = {
+          tender: selectedTender.id,
+          bid_amount: parseFloat(bidForm.bid_amount),
+          message: bidForm.message
+        };
+        
+        await bidAPI.createBid(createData);
         alert('Bid placed successfully!');
       }
 
@@ -141,7 +146,13 @@ function BuyerDashboard() {
     } catch (error) {
       console.error('Error submitting bid:', error);
       if (error.response?.data) {
-        setBidErrors(error.response.data);
+        // Handle specific error messages from backend
+        const errorData = error.response.data;
+        if (typeof errorData === 'object') {
+          setBidErrors(errorData);
+        } else {
+          alert(`Error: ${errorData}`);
+        }
       } else {
         alert('Failed to submit bid. Please try again.');
       }
@@ -323,9 +334,9 @@ function BuyerDashboard() {
                       <button
                         style={styles.viewBtn}
                         onClick={() => handleViewTender(tender)}
-                        disabled={tender.status === 'closed'}
+                        disabled={tender.status === 'closed' || (myBid && myBid.status !== 'pending')}
                       >
-                        {myBid ? 'Update Bid' : 'Place Bid'}
+                        {myBid ? (myBid.status === 'pending' ? 'Update Bid' : 'View Bid') : 'Place Bid'}
                       </button>
                     </div>
                   </div>
