@@ -330,20 +330,23 @@ function CreateTenderModal({ isOpen, onClose, onSuccess }) {
           </div>
 
           <div style={styles.row}>
+            
             {/* Oil Type */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Oil Type *</label>
-              <select
-                name="oil_type"
-                value={formData.oil_type}
-                onChange={handleChange}
-                style={styles.select}
-              >
-                <option value="crude">Crude Cinnamon Oil</option>
-                <option value="refined">Refined Cinnamon Oil</option>
-                <option value="organic">Organic Cinnamon Oil</option>
-                <option value="conventional">Conventional Cinnamon Oil</option>
-              </select>
+            <div style={styles.row}>
+                <div style={styles.formGroup}>
+                    <label style={styles.label}>Oil Type *</label>
+                    <input
+                    type="text"
+                    name="oil_type"
+                    value="organic"
+                    readOnly
+                    style={{
+                        ...styles.input,
+                        backgroundColor: '#f4f4f4',
+                        cursor: 'not-allowed',
+                    }}
+                    />
+                </div>
             </div>
 
             {/* Quantity */}
