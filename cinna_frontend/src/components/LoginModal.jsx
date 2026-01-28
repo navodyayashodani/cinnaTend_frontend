@@ -293,7 +293,7 @@ const styles = {
   submitBtn: {
     width: '100%',
     padding: '0.875rem',
-    backgroundColor: '#3498db',
+    backgroundColor: '#27ae60',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',
