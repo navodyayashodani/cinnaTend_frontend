@@ -6,7 +6,7 @@ import { tenderAPI } from '../services/api';
 function CreateTenderModal({ isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     tender_title: '',
-    oil_type: 'crude',
+    oil_type: 'organic',
     quantity: '',
     tender_description: '',
     start_date: new Date().toISOString().split('T')[0],
