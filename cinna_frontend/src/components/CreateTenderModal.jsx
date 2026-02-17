@@ -399,7 +399,7 @@ function CreateTenderModal({ isOpen, onClose, onSuccess }) {
             <div style={styles.qualityResult}>
               <div style={styles.qualityBadge}>
                 <strong>Quality Grade: {qualityGrade}</strong>
-                <span style={styles.qualityScore}>Score: {qualityScore}/100</span>
+                {/*<span style={styles.qualityScore}>Score: {qualityScore}/100</span>*/}
               </div>
               <span style={styles.aiLabel}>✨ AI-Predicted</span>
             </div>
