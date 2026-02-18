@@ -72,6 +72,13 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login/', credentials),
   logout: (refreshToken) => api.post('/auth/logout/', { refresh_token: refreshToken }),
   getProfile: () => api.get('/auth/profile/'),
+  updateProfile: (profileData) => {
+    // If profileData is FormData (image upload), let axios set Content-Type automatically
+    const config = profileData instanceof FormData 
+      ? { headers: { 'Content-Type': 'multipart/form-data' } }
+      : {};
+    return api.patch('/auth/profile/update/', profileData, config);
+  },
 };
 
 // Tender API functions
