@@ -324,6 +324,6 @@ const s = {
 
   formActions:    { display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', paddingTop: '1.25rem', borderTop: '1px solid #e2e8f0' },
   cancelBtn:      { padding: '0.65rem 1.5rem', backgroundColor: '#f1f5f9', color: '#475569', border: '1.5px solid #e2e8f0', borderRadius: 7, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600 },
-  submitBtn:      { padding: '0.65rem 2rem', backgroundColor: '#d4922a', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700 },
+  submitBtn:      { padding: '0.65rem 2rem', backgroundColor: '#27ae60', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700 },
   submitBtnDisabled: { backgroundColor: '#94a3b8', cursor: 'not-allowed' },
 };

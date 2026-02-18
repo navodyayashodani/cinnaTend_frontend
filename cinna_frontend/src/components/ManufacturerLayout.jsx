@@ -188,7 +188,7 @@ const s = {
   body:        { display: 'flex', flex: 1, overflow: 'hidden' },
   sidebar:     { width: 220, minWidth: 220, backgroundColor: '#fff', borderRight: '1px solid #e2e8f0', padding: '1.25rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.2rem', overflowY: 'auto' },
   navItem:     { display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.62rem 0.85rem', border: 'none', borderRadius: 7, backgroundColor: 'transparent', color: '#4a5568', fontSize: '0.9rem', fontWeight: 500, cursor: 'pointer', textAlign: 'left', transition: 'background-color 0.15s, color 0.15s' },
-  navActive:   { backgroundColor: '#d4922a', color: '#fff' },
+  navActive:   { backgroundColor: '#27ae60', color: '#fff' },
   navIcon:     { fontSize: '0.95rem', minWidth: 18, textAlign: 'center' },
   main:        { flex: 1, padding: '2rem', overflowY: 'auto' },
 };
