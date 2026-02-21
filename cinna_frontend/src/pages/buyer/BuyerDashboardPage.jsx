@@ -320,7 +320,7 @@ const s = {
 
   statsRow:          { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1.2rem', marginBottom: '1.75rem' },
   statCard:          { backgroundColor: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 10, padding: '1.4rem 1.6rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' },
-  statCardGold:      { backgroundColor: '#d4922a', border: '1.5px solid #d4922a' },
+  statCardGold:      { backgroundColor: '#118341ff', border: '1.5px solid #27ae60' },
   statIcon:          { fontSize: '1.75rem', marginBottom: '0.4rem' },
   statLbl:           { margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.85)', fontWeight: 500 },
   statVal:           { margin: 0, fontSize: '2rem', fontWeight: 700, color: '#fff', lineHeight: 1.1 },
@@ -342,7 +342,7 @@ const s = {
   tdVal:             { color: '#4a5568', fontSize: '0.875rem' },
   qualityBadge:      { display: 'inline-block', padding: '0.2rem 0.6rem', backgroundColor: '#dcfce7', color: '#15803d', borderRadius: 5, fontSize: '0.78rem', fontWeight: 700, width: 'fit-content' },
   myBidChip:         { padding: '0.2rem 0.55rem', borderRadius: 5, fontSize: '0.75rem', fontWeight: 600, width: 'fit-content', marginBottom: '0.3rem' },
-  actionBtn:         { padding: '0.42rem 0.9rem', backgroundColor: '#d4922a', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, whiteSpace: 'nowrap' },
+  actionBtn:         { padding: '0.42rem 0.9rem', backgroundColor: '#27ae60', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, whiteSpace: 'nowrap' },
   actionBtnDisabled: { backgroundColor: '#e2e8f0', color: '#94a3b8', cursor: 'not-allowed' },
   empty:             { textAlign: 'center', padding: '3rem' },
   emptyTxt:          { color: '#94a3b8', fontSize: '0.95rem' },
@@ -369,6 +369,6 @@ const s = {
   errTxt:            { color: '#dc2626', fontSize: '0.8rem', marginTop: '0.3rem', display: 'block' },
   modalActions:      { display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0', marginTop: '0.5rem' },
   cancelBtn:         { padding: '0.6rem 1.4rem', backgroundColor: '#f1f5f9', color: '#475569', border: '1.5px solid #e2e8f0', borderRadius: 7, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600 },
-  submitBtn:         { padding: '0.6rem 1.75rem', backgroundColor: '#d4922a', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700 },
+  submitBtn:         { padding: '0.6rem 1.75rem', backgroundColor: '#27ae60', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700 },
   submitBtnDisabled: { backgroundColor: '#94a3b8', cursor: 'not-allowed' },
 };

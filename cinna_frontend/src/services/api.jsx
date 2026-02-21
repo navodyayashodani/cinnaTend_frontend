@@ -13,21 +13,17 @@ const api = axios.create({
 });
 
 // Add token to requests if available
-// ✅ FIX: Only add token to requests that need authentication
 api.interceptors.request.use(
   (config) => {
-    // List of endpoints that don't need authentication
     const publicEndpoints = [
       '/auth/login/',
       '/auth/register/',
     ];
     
-    // Check if this is a public endpoint
     const isPublicEndpoint = publicEndpoints.some(endpoint => 
       config.url?.includes(endpoint)
     );
     
-    // Only add token for non-public endpoints
     if (!isPublicEndpoint) {
       const token = localStorage.getItem('access_token');
       if (token) {
@@ -37,43 +33,33 @@ api.interceptors.request.use(
     
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Optional: Add response interceptor for better error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle 401 errors (token expired, etc.)
     if (error.response?.status === 401) {
-      // Only clear auth if not on login/register endpoints
       const isAuthEndpoint = error.config?.url?.includes('/auth/login/') || 
                              error.config?.url?.includes('/auth/register/');
       
       if (!isAuthEndpoint) {
-        // Token is invalid/expired, clear it
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
-        
-        // Optionally redirect to login
-        // window.location.href = '/';
       }
     }
     return Promise.reject(error);
   }
 );
 
-// Auth API functions
+// ── Auth API ──────────────────────────────────────────────────────────────────
 export const authAPI = {
   register: (userData) => api.post('/auth/register/', userData),
   login: (credentials) => api.post('/auth/login/', credentials),
   logout: (refreshToken) => api.post('/auth/logout/', { refresh_token: refreshToken }),
   getProfile: () => api.get('/auth/profile/'),
   updateProfile: (profileData) => {
-    // If profileData is FormData (image upload), let axios set Content-Type automatically
     const config = profileData instanceof FormData 
       ? { headers: { 'Content-Type': 'multipart/form-data' } }
       : {};
@@ -81,7 +67,7 @@ export const authAPI = {
   },
 };
 
-// Tender API functions
+// ── Tender API ────────────────────────────────────────────────────────────────
 export const tenderAPI = {
   getAllTenders: () => api.get('/tenders/'),
   getTender: (id) => api.get(`/tenders/${id}/`),
@@ -89,17 +75,12 @@ export const tenderAPI = {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
   updateTender: (id, tenderData) => {
-    // Handle both FormData and regular objects
     const headers = tenderData instanceof FormData 
       ? { 'Content-Type': 'multipart/form-data' }
       : { 'Content-Type': 'application/json' };
-    
     return api.put(`/tenders/${id}/`, tenderData, { headers });
   },
-  patchTender: (id, tenderData) => {
-    // PATCH for partial updates (like status changes)
-    return api.patch(`/tenders/${id}/`, tenderData);
-  },
+  patchTender: (id, tenderData) => api.patch(`/tenders/${id}/`, tenderData),
   deleteTender: (id) => api.delete(`/tenders/${id}/`),
   getNextTenderNumber: () => api.get('/tenders/next-number/'),
   predictQuality: (formData) => api.post('/tenders/predict-quality/', formData, {
@@ -108,15 +89,12 @@ export const tenderAPI = {
   getTenderBids: (tenderId) => api.get(`/tenders/${tenderId}/bids/`),
 };
 
-// Bid API functions
+// ── Bid API ───────────────────────────────────────────────────────────────────
 export const bidAPI = {
   getAllBids: () => api.get('/bids/'),
   getBid: (id) => api.get(`/bids/${id}/`),
   createBid: (bidData) => api.post('/bids/', bidData),
-  // ✅ FIXED: Use PATCH for partial updates (only bid_amount and message)
   updateBid: (id, bidData) => {
-    // When updating a bid, only send bid_amount and message
-    // Do NOT send the tender field
     const updateData = {
       bid_amount: bidData.bid_amount,
       message: bidData.message
@@ -128,7 +106,26 @@ export const bidAPI = {
   acceptBid: (bidId) => api.post(`/bids/${bidId}/accept/`),
 };
 
-// Helper functions for token management
+// ── Chat API ──────────────────────────────────────────────────────────────────
+// Buyers pass role='manufacturer', Manufacturers pass role='buyer'
+export const chatAPI = {
+  getUsers: (role) =>
+    api.get(`/chat/users/?role=${role}`).then(r => r.data),
+
+  getMessages: (receiverId) =>
+    api.get(`/chat/messages/?receiver_id=${receiverId}`).then(r => r.data),
+
+  sendMessage: (receiverId, message) =>
+    api.post('/chat/messages/', { receiver_id: receiverId, message }).then(r => r.data),
+
+  getUnreadCount: () =>
+    api.get('/chat/unread-count/').then(r => r.data),
+
+  markRead: (senderId) =>
+    api.post('/chat/mark-read/', { sender_id: senderId }).then(r => r.data),
+};
+
+// ── Token helpers ─────────────────────────────────────────────────────────────
 export const setAuthToken = (access, refresh) => {
   localStorage.setItem('access_token', access);
   localStorage.setItem('refresh_token', refresh);
@@ -140,9 +137,7 @@ export const removeAuthToken = () => {
   localStorage.removeItem('user');
 };
 
-export const getAuthToken = () => {
-  return localStorage.getItem('access_token');
-};
+export const getAuthToken = () => localStorage.getItem('access_token');
 
 export const saveUser = (user) => {
   localStorage.setItem('user', JSON.stringify(user));
