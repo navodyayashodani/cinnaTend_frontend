@@ -5,11 +5,10 @@ import ManufacturerLayout from '../../components/ManufacturerLayout';
 
 export default function QualityGradingPage() {
   const grades = [
-    { grade:'A+', label:'Premium',  color:'#16a34a', bg:'#f0fdf4', desc:'Exceptional quality. Highest market value.' },
+    
     { grade:'A',  label:'Excellent',color:'#15803d', bg:'#dcfce7', desc:'Superior quality. Above standard requirements.' },
     { grade:'B',  label:'Good',     color:'#d97706', bg:'#fffbeb', desc:'Meets all standard quality requirements.' },
     { grade:'C',  label:'Average',  color:'#b45309', bg:'#fef3c7', desc:'Meets minimum quality requirements.' },
-    { grade:'D',  label:'Below Avg',color:'#b91c1c', bg:'#fef2f2', desc:'Below standard. Requires improvement.' },
   ];
 
   return (
@@ -88,7 +87,7 @@ const s = {
   infoText:      { margin:0, color:'#3b82f6', fontSize:'0.875rem', lineHeight:1.6 },
   sectionLabelRow:{ display:'flex', alignItems:'baseline', gap:'0.6rem', marginBottom:'0.75rem', flexWrap:'wrap' },
   sectionLabel:  { fontSize:'0.875rem', fontWeight:700, color:'#1a2e44' },
-  gradeGrid:     { display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:'1rem', marginBottom:'2rem' },
+  gradeGrid:     { display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'1rem', marginBottom:'2rem' },
   gradeCard:     { borderRadius:10, padding:'1.25rem', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.4rem', textAlign:'center' },
   gradeBadge:    { width:48, height:48, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:'1.1rem' },
   gradeLabel:    { margin:'0.3rem 0 0', fontWeight:700, fontSize:'0.875rem' },

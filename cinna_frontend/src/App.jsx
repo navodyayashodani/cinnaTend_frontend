@@ -1,6 +1,6 @@
 // src/App.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
@@ -18,35 +18,58 @@ import AnalyticsPage      from './pages/manufacturer/AnalyticsPage';
 import BuyerDashboardPage from './pages/buyer/BuyerDashboardPage';
 import BuyerMyBidsPage    from './pages/buyer/BuyerMyBidsPage';
 
+// Admin pages
+import AdminDashboard      from './pages/admin/AdminDashboard';
+import AdminUsers          from './pages/admin/AdminUsers';
+import AdminTenders        from './pages/admin/AdminTenders';
+import AdminBids           from './pages/admin/AdminBids';
+import AdminGradingReports from './pages/admin/AdminGradingReports';
+import AdminActivityLogs   from './pages/admin/AdminActivityLogs';
+import AdminReports        from './pages/admin/AdminReports';
+
 // Profile page (shared)
 import ProfilePage from './pages/ProfilePage';
 
 import { useAuth } from './context/AuthContext';
 import './App.css';
 
-// Routes where the global Navbar is hidden (they have their own navbar + sidebar)
-const HIDE_NAVBAR_PREFIXES = ['/manufacturer', '/buyer-dashboard', '/buyer/', '/profile'];
+const HIDE_NAVBAR_PREFIXES = [
+  '/manufacturer',
+  '/buyer-dashboard',
+  '/buyer/',
+  '/profile',
+  '/admin',
+];
+
+export function isAdmin(user) {
+  if (!user) return false;
+  return user.role === 'admin' || user.is_staff === true || user.is_superuser === true;
+}
+
+export function getDashboardPath(user) {
+  if (!user) return '/';
+  if (isAdmin(user))               return '/admin/dashboard';
+  if (user.role === 'manufacturer') return '/manufacturer/dashboard';
+  return '/buyer-dashboard';
+}
 
 function ProtectedRoute({ children, allowedRole }) {
   const { user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated) return <Navigate to="/" replace />;
+  if (!allowedRole) return children;
+  if (allowedRole === 'admin' && isAdmin(user)) return children;
+  if (user?.role === allowedRole) return children;
 
-  if (allowedRole && user?.role !== allowedRole) {
-    return user?.role === 'manufacturer'
-      ? <Navigate to="/manufacturer/dashboard" replace />
-      : <Navigate to="/buyer-dashboard" replace />;
-  }
-
-  return children;
+  return <Navigate to={getDashboardPath(user)} replace />;
 }
 
 function AppContent({ showLogin, setShowLogin, showRegister, setShowRegister }) {
   const location   = useLocation();
   const hideNavbar = HIDE_NAVBAR_PREFIXES.some(p => location.pathname.startsWith(p));
 
-  const handleOpenLogin       = () => { setShowRegister(false); setShowLogin(true); };
-  const handleOpenRegister    = () => { setShowLogin(false); setShowRegister(true); };
+  const handleOpenLogin    = () => { setShowRegister(false); setShowLogin(true); };
+  const handleOpenRegister = () => { setShowLogin(false); setShowRegister(true); };
 
   return (
     <div className="App">
@@ -74,7 +97,6 @@ function AppContent({ showLogin, setShowLogin, showRegister, setShowRegister }) 
         <Route path="/manufacturer/analytics" element={
           <ProtectedRoute allowedRole="manufacturer"><AnalyticsPage /></ProtectedRoute>
         }/>
-        {/* Redirect old route */}
         <Route path="/manufacturer-dashboard" element={<Navigate to="/manufacturer/dashboard" replace />}/>
 
         {/* ── Buyer ── */}
@@ -85,7 +107,30 @@ function AppContent({ showLogin, setShowLogin, showRegister, setShowRegister }) 
           <ProtectedRoute allowedRole="buyer"><BuyerMyBidsPage /></ProtectedRoute>
         }/>
 
-        {/* ── Profile (both roles) ── */}
+        {/* ── Admin ── */}
+        <Route path="/admin/dashboard" element={
+          <ProtectedRoute allowedRole="admin"><AdminDashboard /></ProtectedRoute>
+        }/>
+        <Route path="/admin/users" element={
+          <ProtectedRoute allowedRole="admin"><AdminUsers /></ProtectedRoute>
+        }/>
+        <Route path="/admin/tenders" element={
+          <ProtectedRoute allowedRole="admin"><AdminTenders /></ProtectedRoute>
+        }/>
+        <Route path="/admin/bids" element={
+          <ProtectedRoute allowedRole="admin"><AdminBids /></ProtectedRoute>
+        }/>
+        <Route path="/admin/grading-reports" element={
+          <ProtectedRoute allowedRole="admin"><AdminGradingReports /></ProtectedRoute>
+        }/>
+        <Route path="/admin/activity-logs" element={
+          <ProtectedRoute allowedRole="admin"><AdminActivityLogs /></ProtectedRoute>
+        }/>
+        <Route path="/admin/reports" element={
+          <ProtectedRoute allowedRole="admin"><AdminReports /></ProtectedRoute>
+        }/>
+
+        {/* ── Profile (all roles) ── */}
         <Route path="/profile" element={
           <ProtectedRoute><ProfilePage /></ProtectedRoute>
         }/>
@@ -121,8 +166,3 @@ export default function App() {
     </Router>
   );
 }
-
-const st = {
-  loadingContainer: { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f5f6fa', gap: '1rem' },
-  spinner: { width: 50, height: 50, border: '4px solid #e0e0e0', borderTop: '4px solid #d4922a', borderRadius: '50%', animation: 'spin 1s linear infinite' },
-};
