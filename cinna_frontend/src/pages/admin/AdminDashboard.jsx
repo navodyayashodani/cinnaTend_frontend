@@ -78,9 +78,9 @@ export default function AdminDashboard() {
           <h1 style={s.title}>Admin Dashboard</h1>
           <p style={s.subtitle}>Manage users, tenders, bids, and system activity</p>
         </div>
-        <button style={s.reportBtn} onClick={() => navigate('/admin/reports')}>
+        {/*<button style={s.reportBtn} onClick={() => navigate('/admin/reports')}>
           📊 Generate Report
-        </button>
+        </button>*/}
       </div>
 
       {/* Stat Cards */}
