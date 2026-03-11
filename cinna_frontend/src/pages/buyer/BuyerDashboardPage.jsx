@@ -43,7 +43,6 @@ export default function BuyerDashboardPage() {
   };
 
   // ✅ FIX: bid.tender can be either a number (id) or an object {id, ...}
-  //         Normalise both so the lookup always works.
   const getTenderId = (bid) =>
     typeof bid.tender === 'object' ? bid.tender?.id : bid.tender;
 
@@ -156,7 +155,10 @@ export default function BuyerDashboardPage() {
           <div style={s.empty}><p style={s.emptyTxt}>No tenders found.</p></div>
         ) : filtered.map((tender, idx) => {
           const myBid  = getBidForTender(tender.id);
-          const closed = tender.status === 'closed';
+          
+          // ✅ FIX: Check both status AND end_date
+          const tenderEnded = new Date(tender.end_date) < new Date();
+          const closed = tender.status === 'closed' || tenderEnded;
 
           // Once a bid is submitted it cannot be edited — button disabled
           const canBid     = !closed && !myBid;   // no bid yet → can place
@@ -164,7 +166,9 @@ export default function BuyerDashboardPage() {
 
           // Button label
           const btnLabel = closed
-            ? '🔒 Closed'
+            ? tenderEnded && tender.status !== 'closed' 
+              ? '🕒 Tender Ended'  // End date passed but status not updated
+              : '🔒 Closed'         // Officially closed
             : myBid
               ? `✅ Bid ${myBid.status.charAt(0).toUpperCase() + myBid.status.slice(1)}`
               : '+ Place Bid';
@@ -186,9 +190,18 @@ export default function BuyerDashboardPage() {
                   : <span style={s.tdSub}>—</span>}
               </div>
               <div style={s.tdCell}>
-                <span style={s.tdVal}>
+                <span style={{
+                  ...s.tdVal,
+                  color: tenderEnded ? '#dc2626' : '#4a5568',
+                  fontWeight: tenderEnded ? 600 : 400
+                }}>
                   {new Date(tender.end_date).toISOString().split('T')[0]}
                 </span>
+                {tenderEnded && (
+                  <span style={{ fontSize: '0.7rem', color: '#dc2626', fontWeight: 600 }}>
+                    Expired
+                  </span>
+                )}
               </div>
               <div style={s.tdCell}><span style={s.tdVal}>{tender.bid_count ?? 0}</span></div>
               <div style={s.tdCell}>
@@ -359,7 +372,6 @@ const s = {
   summaryRow:        { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: '0.4rem', borderBottom: '1px solid #f1f5f9' },
   summaryLbl:        { fontSize: '0.82rem', color: '#64748b', fontWeight: 600, minWidth: 110 },
   summaryVal:        { fontSize: '0.875rem', color: '#1a2e44', fontWeight: 500, textAlign: 'right' },
-
 
   formGroup:         { marginBottom: '1.1rem' },
   label:             { display: 'block', marginBottom: '0.45rem', color: '#1a2e44', fontWeight: 600, fontSize: '0.875rem' },
