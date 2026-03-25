@@ -7,6 +7,13 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://backend-production-de7b
 // Add this line - Media URL without /api suffix for profile pictures and other media
 export const MEDIA_URL = API_URL.replace(/\/api\/?$/, '');
 
+export const getImageUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${MEDIA_URL}${normalizedPath}`;
+};
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,

@@ -1,18 +1,14 @@
 // src/pages/ProfilePage.jsx
 
 import React, { useState, useRef, useEffect } from 'react';
-import { authAPI, MEDIA_URL } from '../services/api';
+import { authAPI, getImageUrl } from '../services/api'; // ✅ Import getImageUrl instead of MEDIA_URL
 import { useAuth } from '../context/AuthContext';
 import ManufacturerLayout from '../components/ManufacturerLayout';
 import BuyerLayout from '../components/BuyerLayout';
 import AdminLayout from '../components/AdminLayout';
 import { isAdmin } from '../App';
 
-const getImageUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith('http')) return path;
-  return `${MEDIA_URL}${path}`;
-};
+// ✅ REMOVE the local getImageUrl function - we're importing it from api.jsx now
 
 function getLayout(user) {
   if (isAdmin(user))                return AdminLayout;

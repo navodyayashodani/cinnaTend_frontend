@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getUser, authAPI, removeAuthToken } from '../services/api';
+import { getUser, authAPI, removeAuthToken, getImageUrl } from '../services/api'; // ✅ Add getImageUrl
 import { useAuth } from '../context/AuthContext';
 import ChatPanel from './ChatPanel';
 import { chatAPI } from "../services/api";
@@ -53,11 +53,8 @@ export default function BuyerLayout({ children }) {
   const initials = ((user?.first_name?.[0] || '') + (user?.last_name?.[0] || '')).toUpperCase()
     || user?.username?.[0]?.toUpperCase() || '?';
 
-  const profileImage = user?.profile_picture
-    ? (user.profile_picture.startsWith('http')
-        ? user.profile_picture
-        : `http://127.0.0.1:8000${user.profile_picture}`)
-    : null;
+  // ✅ FIXED - Use the helper function
+  const profileImage = getImageUrl(user?.profile_picture);
 
   return (
     <div style={s.root}>
