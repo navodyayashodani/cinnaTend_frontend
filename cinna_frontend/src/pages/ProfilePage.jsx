@@ -1,7 +1,7 @@
 // src/pages/ProfilePage.jsx
 
 import React, { useState, useRef, useEffect } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI, MEDIA_URL } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import ManufacturerLayout from '../components/ManufacturerLayout';
 import BuyerLayout from '../components/BuyerLayout';
@@ -11,7 +11,7 @@ import { isAdmin } from '../App';
 const getImageUrl = (path) => {
   if (!path) return null;
   if (path.startsWith('http')) return path;
-  return `${API_URL.replace(/\/$/, '')}${path}`;
+  return `${MEDIA_URL}${path}`;
 };
 
 function getLayout(user) {

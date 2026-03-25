@@ -4,6 +4,9 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://backend-production-de7b.up.railway.app/api';
 
+// Add this line - Media URL without /api suffix for profile pictures and other media
+export const MEDIA_URL = API_URL.replace(/\/api\/?$/, '');
+
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,
