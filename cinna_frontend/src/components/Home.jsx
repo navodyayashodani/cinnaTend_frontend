@@ -163,6 +163,62 @@ if (!document.getElementById(STYLE_ID)) {
       margin-top: -1px;
     }
     .diag-divider svg { display: block; }
+
+    /* ✅ RESPONSIVE BREAKPOINTS */
+    @media (max-width: 768px) {
+      /* Hero section mobile */
+      .h-fade-2 br { display: none; }
+      
+      /* Buttons stack on mobile */
+      .btn-primary, .btn-outline {
+        width: 100%;
+        justify-content: center;
+        padding: .85rem 1.8rem;
+        font-size: .88rem;
+      }
+
+      /* Stats become 2x2 grid on mobile */
+      .stat-item {
+        border-right: none !important;
+        border-bottom: 1px solid var(--border);
+        padding: 1.5rem .75rem;
+      }
+      .stat-item:nth-last-child(-n+2) {
+        border-bottom: none;
+      }
+
+      /* Cards reduce padding on mobile */
+      .feat-card, .step-card {
+        padding: 1.5rem;
+      }
+
+      .why-card {
+        padding: 1.3rem;
+      }
+
+      /* Footer stack columns */
+      .footer-grid {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+      }
+
+      .footer-bottom {
+        flex-direction: column !important;
+        text-align: center;
+        gap: .5rem !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      /* Extra small phones */
+      .feat-card, .step-card {
+        padding: 1.2rem;
+      }
+
+      .stat-item {
+        padding: 1.2rem .5rem;
+      }
+    }
   `;
   document.head.appendChild(s);
 }
@@ -217,6 +273,15 @@ function Pill({ text }) {
    MAIN COMPONENT
 ════════════════════════════ */
 export default function Home({ onRegisterClick }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // ✅ Track screen size for dynamic layouts
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div style={{ fontFamily: "'Outfit', sans-serif", backgroundColor: 'var(--bg)', color: 'var(--navy)', minHeight: '100vh' }}>
 
@@ -225,7 +290,7 @@ export default function Home({ onRegisterClick }) {
         position: 'relative',
         backgroundColor: 'var(--white)',
         overflow: 'hidden',
-        padding: '6rem 2rem 5rem',
+        padding: isMobile ? '4rem 1.5rem 3.5rem' : '6rem 2rem 5rem',
         borderBottom: '1px solid var(--border)',
       }}>
         {/* bg dot grid */}
@@ -235,20 +300,24 @@ export default function Home({ onRegisterClick }) {
           backgroundSize: '32px 32px',
         }} />
 
-        {/* green blob top-right */}
-        <div style={{
-          position: 'absolute', top: '-80px', right: '-80px',
-          width: 380, height: 380, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(39,174,96,.13) 0%, transparent 70%)',
-          animation: 'pulse 6s ease-in-out infinite',
-          pointerEvents: 'none',
-        }} />
+        {/* green blob top-right - hide on mobile */}
+        {!isMobile && (
+          <div style={{
+            position: 'absolute', top: '-80px', right: '-80px',
+            width: 380, height: 380, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(39,174,96,.13) 0%, transparent 70%)',
+            animation: 'pulse 6s ease-in-out infinite',
+            pointerEvents: 'none',
+          }} />
+        )}
 
-        {/* spinning ring */}
-        <svg style={{ position: 'absolute', bottom: '5%', left: '3%', opacity: .1, animation: 'spinSlow 30s linear infinite', pointerEvents: 'none' }} width="200" height="200" viewBox="0 0 200 200">
-          <circle cx="100" cy="100" r="90" fill="none" stroke="#27ae60" strokeWidth="1.5" strokeDasharray="12 8" />
-          <circle cx="100" cy="100" r="68" fill="none" stroke="#27ae60" strokeWidth=".8" strokeDasharray="6 12" />
-        </svg>
+        {/* spinning ring - hide on mobile */}
+        {!isMobile && (
+          <svg style={{ position: 'absolute', bottom: '5%', left: '3%', opacity: .1, animation: 'spinSlow 30s linear infinite', pointerEvents: 'none' }} width="200" height="200" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="90" fill="none" strokeDasharray="12 8" />
+            <circle cx="100" cy="100" r="68" fill="none" strokeDasharray="6 12" />
+          </svg>
+        )}
 
         <div style={{ maxWidth: 860, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div className="h-fade-1">
@@ -256,8 +325,7 @@ export default function Home({ onRegisterClick }) {
           </div>
 
           <h1 className="h-fade-2" style={{
-            
-            fontSize: 'clamp(2.6rem, 6.5vw, 5.2rem)',
+            fontSize: 'clamp(2rem, 6.5vw, 5.2rem)',
             fontWeight: 900,
             lineHeight: 1.07,
             color: 'var(--navy)',
@@ -279,7 +347,7 @@ export default function Home({ onRegisterClick }) {
           </h1>
 
           <p className="h-fade-3" style={{
-            fontSize: '1.1rem',
+            fontSize: isMobile ? '.95rem' : '1.1rem',
             color: 'var(--grey)',
             lineHeight: 1.8,
             maxWidth: 540,
@@ -289,19 +357,28 @@ export default function Home({ onRegisterClick }) {
             Connect certified Sri Lankan manufacturers with global buyers on a transparent, AI-assisted tendering platform built for serious trade.
           </p>
 
-          <div className="h-fade-4" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="h-fade-4" style={{ 
+            display: 'flex', 
+            gap: '1rem', 
+            justifyContent: 'center', 
+            flexWrap: 'wrap',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: 'stretch',
+          }}>
             <button className="btn-primary" onClick={onRegisterClick}>
               Get Started →
             </button>
-            
           </div>
 
           {/* trust bar */}
           <div className="h-fade-4" style={{
             marginTop: '3.5rem',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: '1.5rem', flexWrap: 'wrap',
-            fontSize: '.82rem', color: 'var(--grey)', letterSpacing: '.04em',
+            gap: isMobile ? '.75rem' : '1.5rem', 
+            flexWrap: 'wrap',
+            fontSize: isMobile ? '.75rem' : '.82rem', 
+            color: 'var(--grey)', 
+            letterSpacing: '.04em',
           }}>
             {['✓ Free to Register', '✓ KYB-Verified Traders', '✓ AI-Powered Matching', '✓ Secure Escrow'].map(t => (
               <span key={t} style={{ display: 'flex', alignItems: 'center', gap: '.3rem' }}>{t}</span>
@@ -312,7 +389,12 @@ export default function Home({ onRegisterClick }) {
 
       {/* ══ STATS STRIP ══ */}
       <section style={{ backgroundColor: 'var(--navy)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)' }}>
+        <div style={{ 
+          maxWidth: 1100, 
+          margin: '0 auto', 
+          display: 'grid', 
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+        }}>
           {[
             { num: '1,200+', label: 'Verified Traders' },
             { num: '48 hrs', label: 'Avg. Deal Closure' },
@@ -323,10 +405,18 @@ export default function Home({ onRegisterClick }) {
               <div className="stat-item" style={{ borderColor: 'rgba(255,255,255,.1)' }}>
                 <div style={{
                   fontFamily: "'Fraunces', serif",
-                  fontSize: '2.4rem', fontWeight: 900, lineHeight: 1,
+                  fontSize: isMobile ? '1.8rem' : '2.4rem', 
+                  fontWeight: 900, 
+                  lineHeight: 1,
                   color: 'var(--green)',
                 }}>{s.num}</div>
-                <div style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.5)', marginTop: '.45rem', letterSpacing: '.08em', textTransform: 'uppercase' }}>{s.label}</div>
+                <div style={{ 
+                  fontSize: isMobile ? '.72rem' : '.8rem', 
+                  color: 'rgba(255,255,255,.5)', 
+                  marginTop: '.45rem', 
+                  letterSpacing: '.08em', 
+                  textTransform: 'uppercase' 
+                }}>{s.label}</div>
               </div>
             </Reveal>
           ))}
@@ -334,15 +424,25 @@ export default function Home({ onRegisterClick }) {
       </section>
 
       {/* ══ FEATURE CARDS ══ */}
-      <section style={{ padding: '6rem 2rem' }}>
+      <section style={{ padding: isMobile ? '4rem 1.5rem' : '6rem 2rem' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
             <Pill text="Platform" />
-            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.9rem,3.5vw,2.8rem)', fontWeight: 700, color: 'var(--navy)', lineHeight: 1.2 }}>
+            <h2 style={{ 
+              fontFamily: "'Fraunces', serif", 
+              fontSize: 'clamp(1.6rem, 3.5vw, 2.8rem)', 
+              fontWeight: 700, 
+              color: 'var(--navy)', 
+              lineHeight: 1.2 
+            }}>
               Built for Every Side of the Trade
             </h2>
           </Reveal>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: '1.5rem' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))', 
+            gap: '1.5rem' 
+          }}>
             {[
               { icon: '🏭', title: 'For Manufacturers', text: 'List certified batches, set reserve prices, manage inventory in real time, and receive qualified tender bids directly in your dashboard.' },
               { icon: '🛒', title: 'For Buyers', text: 'Browse graded stock from verified distillers, compare quality specs side-by-side, and submit competitive tenders with full confidence.' },
@@ -356,8 +456,18 @@ export default function Home({ onRegisterClick }) {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '1.6rem', marginBottom: '1.3rem',
                   }}>{c.icon}</div>
-                  <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: '1.25rem', fontWeight: 700, color: 'var(--navy)', marginBottom: '.6rem' }}>{c.title}</h3>
-                  <p style={{ color: 'var(--grey)', lineHeight: 1.75, fontSize: '.93rem' }}>{c.text}</p>
+                  <h3 style={{ 
+                    fontFamily: "'Fraunces', serif", 
+                    fontSize: isMobile ? '1.1rem' : '1.25rem', 
+                    fontWeight: 700, 
+                    color: 'var(--navy)', 
+                    marginBottom: '.6rem' 
+                  }}>{c.title}</h3>
+                  <p style={{ 
+                    color: 'var(--grey)', 
+                    lineHeight: 1.75, 
+                    fontSize: isMobile ? '.88rem' : '.93rem' 
+                  }}>{c.text}</p>
                 </div>
               </Reveal>
             ))}
@@ -366,34 +476,73 @@ export default function Home({ onRegisterClick }) {
       </section>
 
       {/* ══ HOW IT WORKS ══ */}
-      <section style={{ backgroundColor: 'var(--navy)', padding: '6rem 2rem', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ 
+        backgroundColor: 'var(--navy)', 
+        padding: isMobile ? '4rem 1.5rem' : '6rem 2rem', 
+        position: 'relative', 
+        overflow: 'hidden' 
+      }}>
         {/* subtle grid */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)', backgroundSize: '60px 60px', pointerEvents: 'none' }} />
+        <div style={{ 
+          position: 'absolute', 
+          inset: 0, 
+          backgroundImage: 'linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)', 
+          backgroundSize: '60px 60px', 
+          pointerEvents: 'none' 
+        }} />
 
         <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <Reveal style={{ marginBottom: '3.5rem' }}>
             <Pill text="Process" />
-            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.9rem,3.5vw,2.8rem)', fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>
+            <h2 style={{ 
+              fontFamily: "'Fraunces', serif", 
+              fontSize: 'clamp(1.6rem, 3.5vw, 2.8rem)', 
+              fontWeight: 700, 
+              color: '#fff', 
+              lineHeight: 1.2 
+            }}>
               Three Steps to Your First Deal
             </h2>
           </Reveal>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '1.5rem' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))', 
+            gap: '1.5rem' 
+          }}>
             {[
               { n: '01', title: 'Register & Verify', text: 'Create your account and submit business credentials. Our compliance team verifies you within 24 hours.' },
               { n: '02', title: 'List or Discover', text: 'Post batches with grade certificates, or search listings filtered by purity, volume, origin, and price.' },
               { n: '03', title: 'Tender & Close', text: 'Bid, negotiate, and finalise terms inside the platform. Escrow and digital contracts protect every deal.' },
             ].map((s, i) => (
               <Reveal key={s.n} delay={i * 0.15}>
-                <div className="step-card" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '6px', padding: '2.2rem' }}>
+                <div className="step-card" style={{ 
+                  background: 'rgba(255,255,255,.05)', 
+                  border: '1px solid rgba(255,255,255,.1)', 
+                  borderRadius: '6px', 
+                  padding: isMobile ? '1.5rem' : '2.2rem' 
+                }}>
                   <div style={{
                     fontFamily: "'Fraunces', serif",
-                    fontSize: '3.8rem', fontWeight: 900, lineHeight: 1,
-                    color: 'var(--green)', opacity: .9,
+                    fontSize: isMobile ? '3rem' : '3.8rem', 
+                    fontWeight: 900, 
+                    lineHeight: 1,
+                    color: 'var(--green)', 
+                    opacity: .9,
                     marginBottom: '.6rem',
                   }}>{s.n}</div>
-                  <h4 style={{ fontFamily: "'Fraunces', serif", fontSize: '1.15rem', color: '#fff', marginBottom: '.6rem' }}>{s.title}</h4>
-                  <p style={{ color: 'rgba(255,255,255,.5)', lineHeight: 1.75, fontSize: '.92rem', margin: 0 }}>{s.text}</p>
+                  <h4 style={{ 
+                    fontFamily: "'Fraunces', serif", 
+                    fontSize: isMobile ? '1.05rem' : '1.15rem', 
+                    color: '#fff', 
+                    marginBottom: '.6rem' 
+                  }}>{s.title}</h4>
+                  <p style={{ 
+                    color: 'rgba(255,255,255,.5)', 
+                    lineHeight: 1.75, 
+                    fontSize: isMobile ? '.88rem' : '.92rem', 
+                    margin: 0 
+                  }}>{s.text}</p>
                 </div>
               </Reveal>
             ))}
@@ -409,15 +558,25 @@ export default function Home({ onRegisterClick }) {
       </div>
 
       {/* ══ WHY CHOOSE US ══ */}
-      <section style={{ padding: '6rem 2rem' }}>
+      <section style={{ padding: isMobile ? '4rem 1.5rem' : '6rem 2rem' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
             <Pill text="Advantages" />
-            <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.9rem,3.5vw,2.8rem)', fontWeight: 700, color: 'var(--navy)', lineHeight: 1.2 }}>
+            <h2 style={{ 
+              fontFamily: "'Fraunces', serif", 
+              fontSize: 'clamp(1.6rem, 3.5vw, 2.8rem)', 
+              fontWeight: 700, 
+              color: 'var(--navy)', 
+              lineHeight: 1.2 
+            }}>
               Why the Industry Trusts Us
             </h2>
           </Reveal>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '1.25rem' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))', 
+            gap: '1.25rem' 
+          }}>
             {[
               { icon: '🔒', label: 'Verified Participants', text: 'Full KYB on every account eliminates fraud and protects your reputation.' },
               { icon: '📊', label: 'Real-Time Market Data', text: 'Benchmark pricing updated daily so you always know fair market value.' },
@@ -434,8 +593,18 @@ export default function Home({ onRegisterClick }) {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '1.35rem',
                   }}>{w.icon}</div>
-                  <h4 style={{ fontFamily: "'Fraunces', serif", fontSize: '1rem', fontWeight: 700, color: 'var(--navy)' }}>{w.label}</h4>
-                  <p style={{ color: 'var(--grey)', lineHeight: 1.65, fontSize: '.9rem', margin: 0 }}>{w.text}</p>
+                  <h4 style={{ 
+                    fontFamily: "'Fraunces', serif", 
+                    fontSize: isMobile ? '.95rem' : '1rem', 
+                    fontWeight: 700, 
+                    color: 'var(--navy)' 
+                  }}>{w.label}</h4>
+                  <p style={{ 
+                    color: 'var(--grey)', 
+                    lineHeight: 1.65, 
+                    fontSize: isMobile ? '.85rem' : '.9rem', 
+                    margin: 0 
+                  }}>{w.text}</p>
                 </div>
               </Reveal>
             ))}
@@ -445,28 +614,52 @@ export default function Home({ onRegisterClick }) {
 
       {/* ══ CTA BANNER ══ */}
       <section style={{
-        margin: '0 2rem 5rem',
+        margin: isMobile ? '0 1.5rem 4rem' : '0 2rem 5rem',
         maxWidth: 1200,
-        marginLeft: 'auto', marginRight: 'auto',
+        marginLeft: 'auto', 
+        marginRight: 'auto',
       }}>
         <Reveal>
           <div style={{
             background: 'linear-gradient(135deg, var(--green) 0%, var(--green-dk) 100%)',
             borderRadius: '12px',
-            padding: 'clamp(3rem,5vw,4.5rem) clamp(2rem,5vw,5rem)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            flexWrap: 'wrap', gap: '2rem',
-            position: 'relative', overflow: 'hidden',
+            padding: isMobile ? '2.5rem 1.5rem' : 'clamp(3rem, 5vw, 4.5rem) clamp(2rem, 5vw, 5rem)',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            flexWrap: 'wrap', 
+            gap: '2rem',
+            position: 'relative', 
+            overflow: 'hidden',
+            flexDirection: isMobile ? 'column' : 'row',
+            textAlign: isMobile ? 'center' : 'left',
           }}>
-            {/* decorative circles */}
-            <div style={{ position: 'absolute', right: '-40px', top: '-60px', width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,.08)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', right: '60px', bottom: '-80px', width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,.06)', pointerEvents: 'none' }} />
+            {/* decorative circles - hide on mobile */}
+            {!isMobile && (
+              <>
+                <div style={{ position: 'absolute', right: '-40px', top: '-60px', width: 220, height: 220, borderRadius: '50%', background: 'rgba(255,255,255,.08)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', right: '60px', bottom: '-80px', width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,.06)', pointerEvents: 'none' }} />
+              </>
+            )}
 
             <div style={{ position: 'relative', zIndex: 1 }}>
-              <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.7rem,3vw,2.5rem)', fontWeight: 900, color: '#fff', marginBottom: '.6rem', lineHeight: 1.2 }}>
+              <h2 style={{ 
+                fontFamily: "'Fraunces', serif", 
+                fontSize: 'clamp(1.4rem, 3vw, 2.5rem)', 
+                fontWeight: 900, 
+                color: '#fff', 
+                marginBottom: '.6rem', 
+                lineHeight: 1.2 
+              }}>
                 Ready to Trade with Confidence?
               </h2>
-              <p style={{ color: 'rgba(255,255,255,.75)', fontSize: '1rem', maxWidth: 440, lineHeight: 1.7 }}>
+              <p style={{ 
+                color: 'rgba(255,255,255,.75)', 
+                fontSize: isMobile ? '.92rem' : '1rem', 
+                maxWidth: isMobile ? '100%' : 440, 
+                lineHeight: 1.7,
+                margin: isMobile ? '0 auto' : '0',
+              }}>
                 Join 1,200+ verified traders already closing better deals, faster.
               </p>
             </div>
@@ -475,13 +668,15 @@ export default function Home({ onRegisterClick }) {
               position: 'relative', zIndex: 1,
               background: '#fff', color: 'var(--green-dk)',
               border: 'none', borderRadius: '3px',
-              padding: '1rem 2.6rem',
+              padding: isMobile ? '.9rem 2rem' : '1rem 2.6rem',
               fontFamily: "'Outfit', sans-serif",
-              fontWeight: 700, fontSize: '1rem',
+              fontWeight: 700, 
+              fontSize: isMobile ? '.9rem' : '1rem',
               letterSpacing: '.04em', textTransform: 'uppercase',
               cursor: 'pointer',
               transition: 'transform .2s, box-shadow .2s',
               flexShrink: 0,
+              width: isMobile ? '100%' : 'auto',
             }}
               onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,.2)'; }}
               onMouseOut={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
@@ -494,17 +689,47 @@ export default function Home({ onRegisterClick }) {
 
       {/* ══ FOOTER ══ */}
       <footer style={{ backgroundColor: 'var(--navy)', paddingTop: '3.5rem', borderTop: '1px solid rgba(255,255,255,.06)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem 3rem', display: 'grid', gridTemplateColumns: '1.8fr 1fr 1fr 1fr', gap: '3rem', flexWrap: 'wrap' }}>
+        <div className="footer-grid" style={{ 
+          maxWidth: 1200, 
+          margin: '0 auto', 
+          padding: isMobile ? '0 1.5rem 3rem' : '0 2rem 3rem', 
+          display: 'grid', 
+          gridTemplateColumns: isMobile ? '1fr' : '1.8fr 1fr 1fr 1fr', 
+          gap: isMobile ? '2.5rem' : '3rem', 
+          flexWrap: 'wrap' 
+        }}>
           <div>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: '1.4rem', fontWeight: 700, color: 'var(--green)', marginBottom: '1rem' }}>
+            <div style={{ 
+              fontFamily: "'Fraunces', serif", 
+              fontSize: '1.4rem', 
+              fontWeight: 700, 
+              color: 'var(--green)', 
+              marginBottom: '1rem' 
+            }}>
               🌿 CinnamonOil
             </div>
-            <p style={{ color: 'rgba(255, 255, 255, 0.82)', fontSize: '.88rem', lineHeight: 1.75, maxWidth: 260, marginBottom: '1.5rem' }}>
+            <p style={{ 
+              color: 'rgba(255, 255, 255, 0.82)', 
+              fontSize: '.88rem', 
+              lineHeight: 1.75, 
+              maxWidth: 260, 
+              marginBottom: '1.5rem' 
+            }}>
               The trusted tendering platform for the global cinnamon oil industry — connecting Ceylon's finest distillers with international buyers.
             </p>
             <div style={{ display: 'flex', gap: '.6rem', flexWrap: 'wrap' }}>
               {['LinkedIn', 'Twitter', 'Email'].map(l => (
-                <a key={l} href="#" style={{ fontSize: '.72rem', letterSpacing: '.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,.35)', border: '1px solid rgba(255,255,255,.12)', padding: '.35rem .85rem', borderRadius: '3px', textDecoration: 'none', transition: 'color .2s, border-color .2s' }}
+                <a key={l} href="#" style={{ 
+                  fontSize: '.72rem', 
+                  letterSpacing: '.06em', 
+                  textTransform: 'uppercase', 
+                  color: 'rgba(255,255,255,.35)', 
+                  border: '1px solid rgba(255,255,255,.12)', 
+                  padding: '.35rem .85rem', 
+                  borderRadius: '3px', 
+                  textDecoration: 'none', 
+                  transition: 'color .2s, border-color .2s' 
+                }}
                   onMouseOver={e => { e.currentTarget.style.color = 'var(--green)'; e.currentTarget.style.borderColor = 'var(--green)'; }}
                   onMouseOut={e => { e.currentTarget.style.color = 'rgba(255, 255, 255, 0.78)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.82)'; }}
                 >{l}</a>
@@ -518,15 +743,41 @@ export default function Home({ onRegisterClick }) {
             { title: 'Legal',    links: ['Terms of Service', 'Privacy Policy', 'Cookie Policy', 'Compliance'] },
           ].map(col => (
             <div key={col.title}>
-              <h5 style={{ fontSize: '.7rem', letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--green)', marginBottom: '1.1rem', fontWeight: 600 }}>{col.title}</h5>
+              <h5 style={{ 
+                fontSize: '.7rem', 
+                letterSpacing: '.16em', 
+                textTransform: 'uppercase', 
+                color: 'var(--green)', 
+                marginBottom: '1.1rem', 
+                fontWeight: 600 
+              }}>{col.title}</h5>
               {col.links.map(l => (
-                <a key={l} className="f-link" href="#" style={{ display: 'block', fontSize: '.88rem', color: 'rgba(255, 255, 255, 0.75)', textDecoration: 'none', marginBottom: '.6rem' }}>{l}</a>
+                <a key={l} className="f-link" href="#" style={{ 
+                  display: 'block', 
+                  fontSize: '.88rem', 
+                  color: 'rgba(255, 255, 255, 0.75)', 
+                  textDecoration: 'none', 
+                  marginBottom: '.6rem' 
+                }}>{l}</a>
               ))}
             </div>
           ))}
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', padding: '1.3rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', maxWidth: 1200, margin: '0 auto', fontSize: '.78rem', color: 'rgba(255, 255, 255, 0.78)', letterSpacing: '.04em' }}>
+        <div className="footer-bottom" style={{ 
+          borderTop: '1px solid rgba(255,255,255,.07)', 
+          padding: '1.3rem 2rem', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          flexWrap: 'wrap', 
+          gap: '1rem', 
+          maxWidth: 1200, 
+          margin: '0 auto', 
+          fontSize: '.78rem', 
+          color: 'rgba(255, 255, 255, 0.78)', 
+          letterSpacing: '.04em' 
+        }}>
           <span>© {new Date().getFullYear()} CinnamonOil Tendering System. All rights reserved.</span>
           <span>Crafted with care in Sri Lanka 🇱🇰</span>
         </div>
