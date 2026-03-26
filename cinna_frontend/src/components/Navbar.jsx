@@ -257,7 +257,8 @@ function Navbar({ onLoginClick, onRegisterClick }) {
                 position: 'absolute', top: 'calc(100% + 8px)', right: 0,
                 backgroundColor: '#fff', borderRadius: 10,
                 boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                minWidth: 220, zIndex: 300, overflow: 'hidden',
+                minWidth: 220, zIndex: 300, overflowY: 'auto',        
+                minHeight: '0',        
                 border: '1px solid #e2e8f0',
               }}>
                 {/* Header */}
