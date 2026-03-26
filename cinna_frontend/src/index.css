@@ -45,7 +45,6 @@ body {
   min-height: 100vh;
   background-color: var(--color-bg);
   color: var(--color-text);
-  /* ✅ Removed place-items:center and display:flex — was breaking dashboard layout */
 }
 
 /* ─── Root app container ────────────────────────────────────────────────────── */
@@ -98,32 +97,172 @@ img {
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+/* ─── Dashboard Card Grid ─── */
+.responsive-grid {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+}
+
+/* ─── Table Fix for Mobile ─── */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: var(--space-md);
+  border-radius: var(--radius-md);
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+/* ─── Mobile Hamburger Button ─── */
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1001;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: background-color 0.2s;
+}
+
+.mobile-menu-btn:hover {
+  background: var(--color-primary-dark);
+}
+
+/* ─── Sidebar Overlay (for mobile) ─── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.active {
+  display: block;
+}
+
 /* ─── Responsive breakpoints ────────────────────────────────────────────────── */
 
-/* Tablet: hide sidebar text, shrink padding */
+/* Large screens - default styles apply */
+
+/* Tablet: 1024px and below */
 @media (max-width: 1024px) {
   h1 { font-size: 1.75rem; }
   h2 { font-size: 1.3rem; }
+  
+  /* Reduce padding on main content areas */
+  main[style*="padding: 2rem"] {
+    padding: 1.5rem !important;
+  }
 }
 
-/* Mobile: stack layout, full-width sidebar becomes top nav */
+/* Tablet/Mobile: 768px and below */
 @media (max-width: 768px) {
-  h1 { font-size: 1.4rem; }
-  h2 { font-size: 1.1rem; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.2rem; }
   h3 { font-size: 1rem; }
 
-  /* Make sidebar layouts stack vertically on mobile */
-  div[style*="display: flex"][style*="height: 100vh"] {
+  /* Show mobile menu button */
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Hide sidebar by default on mobile */
+  aside[style*="width: 260"] {
+    position: fixed !important;
+    left: -260px !important;
+    top: 0 !important;
+    height: 100vh !important;
+    z-index: 1000 !important;
+    transition: left 0.3s ease !important;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.1) !important;
+  }
+
+  /* Show sidebar when mobile-open class is added */
+  aside[style*="width: 260"].mobile-open {
+    left: 0 !important;
+  }
+
+  /* Adjust main content for mobile */
+  main[style*="flex: 1"] {
+    width: 100% !important;
+    padding: 1rem !important;
+    margin-left: 0 !important;
+    padding-top: 5rem !important; /* Space for menu button */
+  }
+
+  /* Make cards stack vertically */
+  .responsive-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Adjust navbar for mobile */
+  nav[style*="height: 64"] {
+    height: auto !important;
+    min-height: 64px !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Stack navbar items vertically on very small screens */
+  nav[style*="height: 64"] > div {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+}
+
+/* Mobile: 480px and below */
+@media (max-width: 480px) {
+  h1 { font-size: 1.3rem; }
+  h2 { font-size: 1.1rem; }
+  
+  /* Further reduce padding */
+  main[style*="flex: 1"] {
+    padding: 0.75rem !important;
+  }
+
+  /* Make buttons full width on mobile */
+  button[style*="padding"] {
+    min-width: 100% !important;
+  }
+
+  /* Stack form elements */
+  form > div {
     flex-direction: column !important;
   }
 
-  /* Chat panel takes full screen on mobile */
-  div[style*="min(820px"] {
-    width: 100vw !important;
-    border-radius: 0 !important;
+  /* Reduce sidebar width on very small screens */
+  aside[style*="width: 260"] {
+    width: 240px !important;
+    min-width: 240px !important;
+    left: -240px !important;
   }
 }
 
-@media (max-width: 480px) {
-  h1 { font-size: 1.2rem; }
+/* Landscape orientation on mobile devices */
+@media (max-height: 500px) and (orientation: landscape) {
+  aside[style*="width: 260"] {
+    overflow-y: auto !important;
+  }
 }

@@ -1,14 +1,20 @@
-// src/pages/manufacturer/QualityGradingPage.jsx
+// src/pages/manufacturer/QualityGradingPage.jsx  — MOBILE RESPONSIVE FIXED
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ManufacturerLayout from '../../components/ManufacturerLayout';
 
 export default function QualityGradingPage() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+
   const grades = [
-    
-    { grade:'A',  label:'Excellent',color:'#15803d', bg:'#dcfce7', desc:'Superior quality. Above standard requirements.' },
-    { grade:'B',  label:'Good',     color:'#d97706', bg:'#fffbeb', desc:'Meets all standard quality requirements.' },
-    { grade:'C',  label:'Average',  color:'#b45309', bg:'#fef3c7', desc:'Meets minimum quality requirements.' },
+    { grade:'A',  label:'Excellent', color:'#15803d', bg:'#dcfce7', desc:'Superior quality. Above standard requirements.' },
+    { grade:'B',  label:'Good',      color:'#d97706', bg:'#fffbeb', desc:'Meets all standard quality requirements.' },
+    { grade:'C',  label:'Average',   color:'#b45309', bg:'#fef3c7', desc:'Meets minimum quality requirements.' },
   ];
 
   return (
@@ -20,7 +26,6 @@ export default function QualityGradingPage() {
         </div>
       </div>
 
-      {/* Info banner */}
       <div style={s.infoBanner}>
         <span style={s.infoIcon}>⭐</span>
         <div>
@@ -29,12 +34,10 @@ export default function QualityGradingPage() {
         </div>
       </div>
 
-      {/* Grade cards */}
-      <div style={s.sectionLabelRow}>
-        <span style={s.sectionLabel}>Grading Scale</span>
-      </div>
+      <div style={s.sectionLabelRow}><span style={s.sectionLabel}>Grading Scale</span></div>
 
-      <div style={s.gradeGrid}>
+      {/* Grade cards: 1-col on mobile, 3-col on desktop */}
+      <div style={{ ...s.gradeGrid, gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)' }}>
         {grades.map(g => (
           <div key={g.grade} style={{ ...s.gradeCard, backgroundColor: g.bg, border: `2px solid ${g.color}22` }}>
             <div style={{ ...s.gradeBadge, backgroundColor: g.color }}>{g.grade}</div>
@@ -44,17 +47,15 @@ export default function QualityGradingPage() {
         ))}
       </div>
 
-      {/* How it works */}
-      <div style={s.sectionLabelRow}>
-        <span style={s.sectionLabel}>How It Works</span>
-      </div>
+      <div style={s.sectionLabelRow}><span style={s.sectionLabel}>How It Works</span></div>
 
-      <div style={s.stepsGrid}>
+      {/* Steps: 1-col on mobile, 2-col on tablet, 4-col on desktop */}
+      <div style={{ ...s.stepsGrid, gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)' }}>
         {[
-          { step:'1', icon:'📄', title:'Upload Report',    desc:'Attach your lab analysis report when creating a tender (PDF, DOCX, XLS, or image).' },
-          { step:'2', icon:'🤖', title:'AI Analysis',      desc:'Our ML model extracts chemical composition data and cross-references industry benchmarks.' },
-          { step:'3', icon:'⭐', title:'Grade Assigned',   desc:'A quality grade (A+ to D) is automatically calculated and attached to your tender.' },
-          { step:'4', icon:'👀', title:'Buyers See Grade', desc:'Buyers can view the grade when placing bids, helping them make informed decisions.' },
+          { step:'1', icon:'📄', title:'Upload Report',  desc:'Attach your lab analysis report when creating a tender (PDF, DOCX, XLS, or image).' },
+          { step:'2', icon:'🤖', title:'AI Analysis',    desc:'Our ML model extracts chemical composition data and cross-references industry benchmarks.' },
+          { step:'3', icon:'⭐', title:'Grade Assigned', desc:'A quality grade (A to C) is automatically calculated and attached to your tender.' },
+          { step:'4', icon:'👀', title:'Buyers See Grade',desc:'Buyers can view the grade when placing bids, helping them make informed decisions.' },
         ].map(step => (
           <div key={step.step} style={s.stepCard}>
             <div style={s.stepNum}>{step.step}</div>
@@ -65,7 +66,6 @@ export default function QualityGradingPage() {
         ))}
       </div>
 
-      {/* Coming soon notice */}
       <div style={s.comingSoon}>
         <span style={s.comingIcon}>🚧</span>
         <div>
@@ -78,28 +78,28 @@ export default function QualityGradingPage() {
 }
 
 const s = {
-  pageHeader:    { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'1.5rem' },
-  pageTitle:     { margin:'0 0 0.3rem', color:'#1a2e44', fontSize:'1.4rem', fontWeight:700 },
-  pageSubtitle:  { margin:0, color:'#64748b', fontSize:'0.9rem' },
-  infoBanner:    { display:'flex', gap:'1rem', alignItems:'flex-start', backgroundColor:'#eff6ff', border:'2px solid #bfdbfe', borderRadius:10, padding:'1.25rem 1.5rem', marginBottom:'1.75rem' },
-  infoIcon:      { fontSize:'1.75rem', flexShrink:0 },
-  infoTitle:     { margin:'0 0 0.3rem', fontWeight:700, color:'#1e40af', fontSize:'0.95rem' },
-  infoText:      { margin:0, color:'#3b82f6', fontSize:'0.875rem', lineHeight:1.6 },
+  pageHeader:     { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'1.5rem' },
+  pageTitle:      { margin:'0 0 0.3rem', color:'#1a2e44', fontSize:'1.4rem', fontWeight:700 },
+  pageSubtitle:   { margin:0, color:'#64748b', fontSize:'0.9rem' },
+  infoBanner:     { display:'flex', gap:'1rem', alignItems:'flex-start', backgroundColor:'#eff6ff', border:'2px solid #bfdbfe', borderRadius:10, padding:'1.25rem 1.5rem', marginBottom:'1.75rem', flexWrap:'wrap' },
+  infoIcon:       { fontSize:'1.75rem', flexShrink:0 },
+  infoTitle:      { margin:'0 0 0.3rem', fontWeight:700, color:'#1e40af', fontSize:'0.95rem' },
+  infoText:       { margin:0, color:'#3b82f6', fontSize:'0.875rem', lineHeight:1.6 },
   sectionLabelRow:{ display:'flex', alignItems:'baseline', gap:'0.6rem', marginBottom:'0.75rem', flexWrap:'wrap' },
-  sectionLabel:  { fontSize:'0.875rem', fontWeight:700, color:'#1a2e44' },
-  gradeGrid:     { display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'1rem', marginBottom:'2rem' },
-  gradeCard:     { borderRadius:10, padding:'1.25rem', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.4rem', textAlign:'center' },
-  gradeBadge:    { width:48, height:48, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:'1.1rem' },
-  gradeLabel:    { margin:'0.3rem 0 0', fontWeight:700, fontSize:'0.875rem' },
-  gradeDesc:     { margin:0, fontSize:'0.78rem', color:'#64748b', lineHeight:1.5 },
-  stepsGrid:     { display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'1rem', marginBottom:'2rem' },
-  stepCard:      { backgroundColor:'#fff', border:'1.5px solid #e2e8f0', borderRadius:10, padding:'1.25rem', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.4rem', textAlign:'center' },
-  stepNum:       { width:28, height:28, borderRadius:'50%', backgroundColor:'#d4922a', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:'0.85rem', flexShrink:0 },
-  stepIcon:      { fontSize:'1.75rem', margin:'0.35rem 0' },
-  stepTitle:     { margin:0, fontWeight:700, color:'#1a2e44', fontSize:'0.9rem' },
-  stepDesc:      { margin:0, fontSize:'0.8rem', color:'#64748b', lineHeight:1.5 },
-  comingSoon:    { display:'flex', gap:'1rem', alignItems:'flex-start', backgroundColor:'#fefce8', border:'2px solid #fde047', borderRadius:10, padding:'1.25rem 1.5rem' },
-  comingIcon:    { fontSize:'1.75rem', flexShrink:0 },
-  comingTitle:   { margin:'0 0 0.3rem', fontWeight:700, color:'#713f12', fontSize:'0.95rem' },
-  comingText:    { margin:0, color:'#854d0e', fontSize:'0.875rem', lineHeight:1.6 },
+  sectionLabel:   { fontSize:'0.875rem', fontWeight:700, color:'#1a2e44' },
+  gradeGrid:      { display:'grid', gap:'1rem', marginBottom:'2rem' },
+  gradeCard:      { borderRadius:10, padding:'1.25rem', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.4rem', textAlign:'center' },
+  gradeBadge:     { width:48, height:48, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:'1.1rem' },
+  gradeLabel:     { margin:'0.3rem 0 0', fontWeight:700, fontSize:'0.875rem' },
+  gradeDesc:      { margin:0, fontSize:'0.78rem', color:'#64748b', lineHeight:1.5 },
+  stepsGrid:      { display:'grid', gap:'1rem', marginBottom:'2rem' },
+  stepCard:       { backgroundColor:'#fff', border:'1.5px solid #e2e8f0', borderRadius:10, padding:'1.25rem', display:'flex', flexDirection:'column', alignItems:'center', gap:'0.4rem', textAlign:'center' },
+  stepNum:        { width:28, height:28, borderRadius:'50%', backgroundColor:'#d4922a', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:'0.85rem', flexShrink:0 },
+  stepIcon:       { fontSize:'1.75rem', margin:'0.35rem 0' },
+  stepTitle:      { margin:0, fontWeight:700, color:'#1a2e44', fontSize:'0.9rem' },
+  stepDesc:       { margin:0, fontSize:'0.78rem', color:'#64748b', lineHeight:1.5 },
+  comingSoon:     { display:'flex', gap:'1rem', alignItems:'flex-start', backgroundColor:'#fefce8', border:'2px solid #fde047', borderRadius:10, padding:'1.25rem 1.5rem', flexWrap:'wrap' },
+  comingIcon:     { fontSize:'1.75rem', flexShrink:0 },
+  comingTitle:    { margin:'0 0 0.3rem', fontWeight:700, color:'#713f12', fontSize:'0.95rem' },
+  comingText:     { margin:0, color:'#854d0e', fontSize:'0.875rem', lineHeight:1.6 },
 };

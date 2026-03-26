@@ -1,4 +1,4 @@
-// src/components/LoginModal.jsx
+// src/components/LoginModal.jsx  — MOBILE RESPONSIVE FIXED
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +15,6 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
   const [serverError, setServerError] = useState('');
   const [loading, setLoading]         = useState(false);
 
-  // Reset form whenever modal opens or closes
   useEffect(() => {
     setFormData({ username: '', password: '' });
     setErrors({});
@@ -42,32 +41,16 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
 
     setLoading(true);
     setServerError('');
-
     try {
-      const response = await authAPI.login({
-        username: formData.username,
-        password: formData.password,
-      });
-
+      const response = await authAPI.login({ username: formData.username, password: formData.password });
       const { access, refresh, user } = response.data;
-
       setAuthToken(access, refresh);
       login(user);
       onClose();
-
-      // getDashboardPath handles admin (role, is_staff, is_superuser),
-      // manufacturer, and buyer automatically
       setTimeout(() => navigate(getDashboardPath(user)), 100);
-
     } catch (err) {
-      setServerError(
-        err.response?.data?.error ||
-        err.response?.data?.detail ||
-        'Login failed. Please try again.'
-      );
-    } finally {
-      setLoading(false);
-    }
+      setServerError(err.response?.data?.error || err.response?.data?.detail || 'Login failed. Please try again.');
+    } finally { setLoading(false); }
   };
 
   const handleSwitchToRegister = () => {
@@ -80,14 +63,12 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
   return (
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-
         <div style={styles.header}>
           <h2 style={styles.title}>Welcome Back</h2>
           <button onClick={onClose} style={styles.closeBtn}>×</button>
         </div>
 
         <form onSubmit={handleSubmit} style={styles.form}>
-
           {serverError && (
             <div style={styles.errorAlert}>
               <span style={styles.errorIcon}>⚠️</span>
@@ -95,7 +76,6 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
             </div>
           )}
 
-          {/* Username */}
           <div style={styles.formGroup}>
             <label style={styles.label}>Username</label>
             <div style={styles.inputWrapper}>
@@ -112,7 +92,6 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
             {errors.username && <span style={styles.errorText}>{errors.username}</span>}
           </div>
 
-          {/* Password */}
           <div style={styles.formGroup}>
             <label style={styles.label}>Password</label>
             <div style={styles.inputWrapper}>
@@ -130,21 +109,14 @@ function LoginModal({ isOpen, onClose, onSwitchToRegister }) {
             {errors.password && <span style={styles.errorText}>{errors.password}</span>}
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{ ...styles.submitBtn, ...(loading ? styles.submitBtnDisabled : {}) }}
-          >
+          <button type="submit" disabled={loading} style={{ ...styles.submitBtn, ...(loading ? styles.submitBtnDisabled : {}) }}>
             {loading ? 'Logging in...' : 'Login'}
           </button>
 
           <div style={styles.footer}>
             Don't have an account?
-            <button type="button" onClick={handleSwitchToRegister} style={styles.linkBtn}>
-              Register here
-            </button>
+            <button type="button" onClick={handleSwitchToRegister} style={styles.linkBtn}>Register here</button>
           </div>
-
         </form>
       </div>
     </div>
@@ -157,26 +129,27 @@ const styles = {
     backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex',
     justifyContent: 'center', alignItems: 'center',
     zIndex: 1000, backdropFilter: 'blur(4px)',
+    padding: '1rem',   /* ← prevents modal touching screen edges on mobile */
   },
   modal: {
     backgroundColor: '#fff', borderRadius: '12px',
-    width: '90%', maxWidth: '420px',
+    width: '100%', maxWidth: '420px',  /* full width up to 420px */
     boxShadow: '0 20px 60px rgba(0,0,0,0.3)', overflow: 'hidden',
   },
   header: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: '1.5rem 2rem', borderBottom: '1px solid #e0e0e0',
+    padding: '1.25rem 1.5rem', borderBottom: '1px solid #e0e0e0',
     backgroundColor: '#f8f9fa',
   },
-  title:    { margin: 0, color: '#2c3e50', fontSize: '1.5rem', fontWeight: '600' },
+  title:    { margin: 0, color: '#2c3e50', fontSize: '1.4rem', fontWeight: '600' },
   closeBtn: {
     background: 'none', border: 'none', fontSize: '2rem', cursor: 'pointer',
     color: '#7f8c8d', lineHeight: 1, padding: 0,
     width: '32px', height: '32px', display: 'flex',
     alignItems: 'center', justifyContent: 'center', borderRadius: '4px',
   },
-  form:      { padding: '2rem' },
-  formGroup: { marginBottom: '1.25rem' },
+  form:      { padding: '1.5rem' },
+  formGroup: { marginBottom: '1.1rem' },
   label:     { display: 'block', marginBottom: '0.5rem', color: '#2c3e50', fontWeight: '500', fontSize: '0.9rem' },
   inputWrapper: { position: 'relative', display: 'flex', alignItems: 'center' },
   inputIcon: { position: 'absolute', left: '1rem', fontSize: '1.2rem', pointerEvents: 'none' },

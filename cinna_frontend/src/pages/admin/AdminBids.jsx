@@ -9,6 +9,14 @@ export default function AdminBids() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch]   = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // ✅ Track screen size
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     adminAPI.getBids({ limit: 200 })
@@ -36,7 +44,12 @@ export default function AdminBids() {
       </div>
 
       <div style={s.toolbar}>
-        <input style={s.search} placeholder="🔍  Search by buyer, tender title or number…" value={search} onChange={e => setSearch(e.target.value)} />
+        <input 
+          style={s.search} 
+          placeholder="🔍  Search bids…" 
+          value={search} 
+          onChange={e => setSearch(e.target.value)} 
+        />
         <select style={s.select} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
@@ -48,29 +61,73 @@ export default function AdminBids() {
 
       <div style={s.card}>
         {loading ? <p style={s.empty}>Loading…</p> : (
-          <table style={s.table}>
-            <thead>
-              <tr>{['Tender #', 'Tender Title', 'Buyer', 'Bid Amount', 'Message', 'Status', 'Submitted'].map(h =>
-                <th key={h} style={s.th}>{h}</th>
-              )}</tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0
-                ? <tr><td colSpan={7} style={s.empty}>No bids found</td></tr>
-                : filtered.map(b => (
-                  <tr key={b.id} style={s.tr}>
-                    <td style={s.td}><span style={s.tnumber}>{b.tender_number}</span></td>
-                    <td style={s.td}>{b.tender_title}</td>
-                    <td style={s.td}><strong>{b.buyer}</strong></td>
-                    <td style={s.td}><span style={s.amount}>LKR {Number(b.bid_amount).toLocaleString()}</span></td>
-                    <td style={s.td}><span style={s.msg}>{b.message || '—'}</span></td>
-                    <td style={s.td}><BidStatusBadge status={b.status} /></td>
-                    <td style={s.td}>{b.created_at ? new Date(b.created_at).toLocaleDateString() : '—'}</td>
-                  </tr>
+          isMobile ? (
+            // ✅ MOBILE: Card view
+            <div style={s.mobileList}>
+              {filtered.length === 0 ? (
+                <p style={s.empty}>No bids found</p>
+              ) : (
+                filtered.map(b => (
+                  <div key={b.id} style={s.mobileCard}>
+                    <div style={s.mobileHeader}>
+                      <span style={s.tnumber}>{b.tender_number}</span>
+                      <BidStatusBadge status={b.status} />
+                    </div>
+                    <h4 style={s.mobileTitle}>{b.tender_title}</h4>
+                    <div style={s.mobileBidAmount}>
+                      <span style={s.mobileLabel}>Bid Amount</span>
+                      <span style={s.amount}>$ {Number(b.bid_amount).toLocaleString()}</span>
+                    </div>
+                    <div style={s.mobileGrid}>
+                      <div style={s.mobileField}>
+                        <span style={s.mobileLabel}>Buyer</span>
+                        <span style={s.mobileValue}>{b.buyer}</span>
+                      </div>
+                      <div style={s.mobileField}>
+                        <span style={s.mobileLabel}>Submitted</span>
+                        <span style={s.mobileValue}>
+                          {b.created_at ? new Date(b.created_at).toLocaleDateString() : '—'}
+                        </span>
+                      </div>
+                    </div>
+                    {b.message && (
+                      <div style={s.mobileMessage}>
+                        <span style={s.mobileLabel}>Message</span>
+                        <p style={s.messageText}>{b.message}</p>
+                      </div>
+                    )}
+                  </div>
                 ))
-              }
-            </tbody>
-          </table>
+              )}
+            </div>
+          ) : (
+            // ✅ DESKTOP: Table view
+            <div style={s.tableWrapper}>
+              <table style={s.table}>
+                <thead>
+                  <tr>{['Tender #', 'Tender Title', 'Buyer', 'Bid Amount', 'Message', 'Status', 'Submitted'].map(h =>
+                    <th key={h} style={s.th}>{h}</th>
+                  )}</tr>
+                </thead>
+                <tbody>
+                  {filtered.length === 0
+                    ? <tr><td colSpan={7} style={s.empty}>No bids found</td></tr>
+                    : filtered.map(b => (
+                      <tr key={b.id} style={s.tr}>
+                        <td style={s.td}><span style={s.tnumber}>{b.tender_number}</span></td>
+                        <td style={s.td}>{b.tender_title}</td>
+                        <td style={s.td}><strong>{b.buyer}</strong></td>
+                        <td style={s.td}><span style={s.amount}>$ {Number(b.bid_amount).toLocaleString()}</span></td>
+                        <td style={s.td}><span style={s.msg}>{b.message || '—'}</span></td>
+                        <td style={s.td}><BidStatusBadge status={b.status} /></td>
+                        <td style={s.td}>{b.created_at ? new Date(b.created_at).toLocaleDateString() : '—'}</td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
+          )
         )}
       </div>
     </AdminLayout>
@@ -91,8 +148,11 @@ const s = {
   search:   { flex: 1, minWidth: 200, padding: '0.65rem 1rem', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: '0.9rem', outline: 'none' },
   select:   { padding: '0.65rem 1rem', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: '0.9rem', outline: 'none', backgroundColor: '#fff' },
   count:    { color: '#64748b', fontSize: '0.85rem', whiteSpace: 'nowrap' },
-  card:     { backgroundColor: '#fff', borderRadius: 12, padding: '1.25rem', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', overflowX: 'auto' },
-  table:    { width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' },
+  card:     { backgroundColor: '#fff', borderRadius: 12, padding: '1.25rem', boxShadow: '0 1px 6px rgba(0,0,0,0.07)' },
+  
+  // Desktop table
+  tableWrapper: { overflowX: 'auto', WebkitOverflowScrolling: 'touch' },
+  table:    { width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', minWidth: 900 },
   th:       { padding: '0.6rem 0.75rem', textAlign: 'left', color: '#94a3b8', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', borderBottom: '2px solid #f1f5f9', whiteSpace: 'nowrap' },
   td:       { padding: '0.75rem', color: '#374151', borderBottom: '1px solid #f8fafc', verticalAlign: 'middle' },
   tr:       {},
@@ -100,4 +160,17 @@ const s = {
   tnumber:  { fontFamily: 'monospace', fontSize: '0.8rem', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: 4, color: '#475569' },
   amount:   { fontWeight: 700, color: '#16a34a' },
   msg:      { color: '#64748b', fontSize: '0.82rem', maxWidth: 200, display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+
+  // Mobile card view
+  mobileList: { display: 'flex', flexDirection: 'column', gap: '1rem' },
+  mobileCard: { backgroundColor: '#f8fafc', borderRadius: 10, padding: '1rem', border: '1px solid #e2e8f0' },
+  mobileHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' },
+  mobileTitle: { margin: '0 0 0.75rem', fontSize: '0.95rem', fontWeight: 600, color: '#1a2e44' },
+  mobileBidAmount: { display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '0.75rem', padding: '0.75rem', backgroundColor: '#fff', borderRadius: 8 },
+  mobileGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.75rem' },
+  mobileField: { display: 'flex', flexDirection: 'column', gap: '0.25rem' },
+  mobileLabel: { fontSize: '0.7rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' },
+  mobileValue: { fontSize: '0.85rem', fontWeight: 500, color: '#374151' },
+  mobileMessage: { marginTop: '0.75rem', padding: '0.75rem', backgroundColor: '#fff', borderRadius: 8 },
+  messageText: { margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5 },
 };

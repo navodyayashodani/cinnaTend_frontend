@@ -25,6 +25,24 @@ export default function AdminLayout({ children }) {
   const location      = useLocation();
   const [chatOpen, setChatOpen]       = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768); // ✅ Track screen size
+
+  // ✅ Listen for window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchUnread = () => {
@@ -36,6 +54,21 @@ export default function AdminLayout({ children }) {
     const interval = setInterval(fetchUnread, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   const handleOpenChat = () => {
     setChatOpen(true);
@@ -63,13 +96,54 @@ export default function AdminLayout({ children }) {
         : `http://127.0.0.1:8000${user.profile_picture}`)
     : null;
 
+  // ✅ Dynamic styles based on mobile state
+  const sidebarStyle = {
+    ...s.sidebar,
+    ...(isMobile ? {
+      position: 'fixed',
+      left: mobileMenuOpen ? 0 : -260,
+      top: 0,
+      height: '100vh',
+      zIndex: 1000,
+      transition: 'left 0.3s ease',
+      boxShadow: mobileMenuOpen ? '2px 0 12px rgba(0,0,0,0.1)' : 'none',
+    } : {})
+  };
+
+  const mainStyle = {
+    ...s.main,
+    ...(isMobile ? {
+      width: '100%',
+      padding: '1rem',
+      paddingTop: '5rem',
+    } : {})
+  };
+
   return (
     <div style={s.root}>
 
-      {/* ── SIDEBAR ── */}
-      <aside style={s.sidebar}>
+      {/* ✅ MOBILE MENU BUTTON */}
+      {isMobile && (
+        <button 
+          style={s.mobileMenuBtn}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? '✕' : '☰'}
+        </button>
+      )}
 
-        {/* Brand */}
+      {/* ✅ MOBILE OVERLAY */}
+      {isMobile && mobileMenuOpen && (
+        <div 
+          style={s.overlay}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* ── SIDEBAR ── */}
+      <aside style={sidebarStyle}>
+
         <div style={s.brandSection} onClick={() => navigate('/admin/dashboard')}>
           <span style={s.brandIcon}>🌿</span>
           <span style={s.brandText}>CinnaTend</span>
@@ -78,7 +152,6 @@ export default function AdminLayout({ children }) {
 
         <div style={s.divider} />
 
-        {/* User profile */}
         <div style={s.userSection}>
           {profileImage ? (
             <>
@@ -102,7 +175,6 @@ export default function AdminLayout({ children }) {
 
         <div style={s.divider} />
 
-        {/* Nav items */}
         <div style={s.navSection}>
           {NAV_ITEMS.map(item => {
             const active = location.pathname === item.path;
@@ -110,7 +182,10 @@ export default function AdminLayout({ children }) {
               <button
                 key={item.path}
                 style={{ ...s.navItem, ...(active ? s.navActive : {}) }}
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  navigate(item.path);
+                  if (isMobile) setMobileMenuOpen(false);
+                }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.backgroundColor = '#f0f4f8'; }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.backgroundColor = 'transparent'; }}
               >
@@ -119,23 +194,8 @@ export default function AdminLayout({ children }) {
               </button>
             );
           })}
-
-          {/* Chat */}
-          {/*<button
-            style={{ ...s.navItem, ...(chatOpen ? s.navActive : {}), position: 'relative' }}
-            onClick={handleOpenChat}
-            onMouseEnter={e => { if (!chatOpen) e.currentTarget.style.backgroundColor = '#f0f4f8'; }}
-            onMouseLeave={e => { if (!chatOpen) e.currentTarget.style.backgroundColor = 'transparent'; }}
-          >
-            <span style={s.navIcon}>💬</span>
-            Chat
-            {unreadCount > 0 && (
-              <span style={s.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
-            )}
-          </button>*/}
         </div>
 
-        {/* Logout */}
         <div style={s.bottomSection}>
           <button
             style={{ ...s.navItem, ...s.logoutBtn }}
@@ -150,10 +210,8 @@ export default function AdminLayout({ children }) {
 
       </aside>
 
-      {/* ── PAGE CONTENT ── */}
-      <main style={s.main}>{children}</main>
+      <main style={mainStyle}>{children}</main>
 
-      {/* ── CHAT PANEL ── */}
       <ChatPanel
         isOpen={chatOpen}
         onClose={() => setChatOpen(false)}
@@ -165,8 +223,39 @@ export default function AdminLayout({ children }) {
 }
 
 const s = {
-  root:         { display: 'flex', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: "'Segoe UI', system-ui, sans-serif", overflow: 'hidden' },
+  root:         { display: 'flex', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: "'Segoe UI', system-ui, sans-serif", overflow: 'hidden', position: 'relative' },
   sidebar:      { width: 260, minWidth: 260, backgroundColor: '#fff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', overflowY: 'auto', flexShrink: 0 },
+
+  mobileMenuBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'fixed',
+    top: '1rem',
+    left: '1rem',
+    zIndex: 1001,
+    background: '#27ae60',
+    color: 'white',
+    border: 'none',
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    fontSize: '1.5rem',
+    cursor: 'pointer',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    transition: 'background-color 0.2s',
+  },
+
+  overlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 999,
+    backdropFilter: 'blur(2px)',
+  },
 
   brandSection: { padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', userSelect: 'none', flexShrink: 0 },
   brandIcon:    { fontSize: '1.6rem' },

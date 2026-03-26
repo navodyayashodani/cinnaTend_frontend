@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getUser, authAPI, removeAuthToken, getImageUrl } from '../services/api'; // ✅ Add getImageUrl
+import { getUser, authAPI, removeAuthToken, getImageUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import ChatPanel from './ChatPanel';
 import { chatAPI } from "../services/api";
@@ -20,8 +20,25 @@ export default function BuyerLayout({ children }) {
   const location      = useLocation();
   const [chatOpen, setChatOpen]       = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768); // ✅ Track screen size
 
-  // Poll unread count every 10 seconds
+  // ✅ Listen for window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const fetchUnread = () => {
       chatAPI.getUnreadCount()
@@ -33,7 +50,21 @@ export default function BuyerLayout({ children }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Reset badge when chat is opened
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   const handleOpenChat = () => {
     setChatOpen(true);
     setUnreadCount(0);
@@ -53,14 +84,55 @@ export default function BuyerLayout({ children }) {
   const initials = ((user?.first_name?.[0] || '') + (user?.last_name?.[0] || '')).toUpperCase()
     || user?.username?.[0]?.toUpperCase() || '?';
 
-  // ✅ FIXED - Use the helper function
   const profileImage = getImageUrl(user?.profile_picture);
+
+  // ✅ Dynamic styles based on mobile state
+  const sidebarStyle = {
+    ...s.sidebar,
+    ...(isMobile ? {
+      position: 'fixed',
+      left: mobileMenuOpen ? 0 : -260,
+      top: 0,
+      height: '100vh',
+      zIndex: 1000,
+      transition: 'left 0.3s ease',
+      boxShadow: mobileMenuOpen ? '2px 0 12px rgba(0,0,0,0.1)' : 'none',
+    } : {})
+  };
+
+  const mainStyle = {
+    ...s.main,
+    ...(isMobile ? {
+      width: '100%',
+      padding: '1rem',
+      paddingTop: '5rem',
+    } : {})
+  };
 
   return (
     <div style={s.root}>
+
+      {/* ✅ MOBILE MENU BUTTON */}
+      {isMobile && (
+        <button 
+          style={s.mobileMenuBtn}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? '✕' : '☰'}
+        </button>
+      )}
+
+      {/* ✅ MOBILE OVERLAY */}
+      {isMobile && mobileMenuOpen && (
+        <div 
+          style={s.overlay}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* ── SIDEBAR ── */}
-      <aside style={s.sidebar}>
-        {/* Brand */}
+      <aside style={sidebarStyle}>
         <div style={s.brandSection} onClick={() => navigate('/buyer-dashboard')}>
           <span style={s.brandIcon}>🌿</span>
           <span style={s.brandText}>CinnaTend</span>
@@ -68,7 +140,6 @@ export default function BuyerLayout({ children }) {
 
         <div style={s.divider} />
 
-        {/* User profile */}
         <div style={s.userSection}>
           {profileImage ? (
             <img
@@ -89,14 +160,16 @@ export default function BuyerLayout({ children }) {
 
         <div style={s.divider} />
 
-        {/* Nav items */}
         <div style={s.navSection}>
           {NAV_ITEMS.map(item => {
             const active = location.pathname === item.path;
             return (
               <button key={item.path}
                 style={{ ...s.navItem, ...(active ? s.navActive : {}) }}
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  navigate(item.path);
+                  if (isMobile) setMobileMenuOpen(false);
+                }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.backgroundColor = '#f0f4f8'; }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.backgroundColor = 'transparent'; }}
               >
@@ -106,14 +179,16 @@ export default function BuyerLayout({ children }) {
             );
           })}
 
-          {/* ── CHAT NAV ITEM ── */}
           <button
             style={{
               ...s.navItem,
               ...(chatOpen ? s.navActive : {}),
               position: 'relative',
             }}
-            onClick={handleOpenChat}
+            onClick={() => {
+              handleOpenChat();
+              if (isMobile) setMobileMenuOpen(false);
+            }}
             onMouseEnter={e => { if (!chatOpen) e.currentTarget.style.backgroundColor = '#f0f4f8'; }}
             onMouseLeave={e => { if (!chatOpen) e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
@@ -125,7 +200,6 @@ export default function BuyerLayout({ children }) {
           </button>
         </div>
 
-        {/* Logout */}
         <div style={s.bottomSection}>
           <button style={{ ...s.navItem, ...s.logoutBtn }}
             onClick={handleLogout}
@@ -138,10 +212,8 @@ export default function BuyerLayout({ children }) {
         </div>
       </aside>
 
-      {/* ── PAGE CONTENT ── */}
-      <main style={s.main}>{children}</main>
+      <main style={mainStyle}>{children}</main>
 
-      {/* ── CHAT PANEL OVERLAY ── */}
       <ChatPanel
         isOpen={chatOpen}
         onClose={() => setChatOpen(false)}
@@ -152,15 +224,46 @@ export default function BuyerLayout({ children }) {
 }
 
 const s = {
-  root:          { display: 'flex', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: "'Segoe UI', system-ui, sans-serif", overflow: 'hidden' },
+  root:          { display: 'flex', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: "'Segoe UI', system-ui, sans-serif", overflow: 'hidden', position: 'relative' },
   sidebar:       { width: 260, minWidth: 260, backgroundColor: '#fff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', overflowY: 'auto', flexShrink: 0 },
+
+  mobileMenuBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'fixed',
+    top: '1rem',
+    left: '1rem',
+    zIndex: 1001,
+    background: '#27ae60',
+    color: 'white',
+    border: 'none',
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    fontSize: '1.5rem',
+    cursor: 'pointer',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    transition: 'background-color 0.2s',
+  },
+
+  overlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 999,
+    backdropFilter: 'blur(2px)',
+  },
 
   brandSection:  { padding: '1.5rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.65rem', cursor: 'pointer', userSelect: 'none', flexShrink: 0 },
   brandIcon:     { fontSize: '1.6rem' },
   brandText:     { color: '#d4922a', fontWeight: 800, fontSize: '1.35rem', letterSpacing: '-0.4px' },
 
   userSection:   { padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', flexShrink: 0 },
-  avatarLarge:   { width: 70, height: 70, borderRadius: '50%', backgroundColor: '#d4922a', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700, flexShrink: 0 },
+  avatarLarge:   { width: 70, height: 70, borderRadius: '50%', backgroundColor: '#27ae60', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700, flexShrink: 0 },
   avatarImg:     { width: 70, height: 70, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid #e2e8f0' },
   userName:      { margin: '0.25rem 0 0', fontWeight: 700, color: '#1a2e44', fontSize: '0.95rem', textAlign: 'center' },
   userRole:      { margin: 0, color: '#64748b', fontSize: '0.8rem' },

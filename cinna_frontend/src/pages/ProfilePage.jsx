@@ -1,14 +1,12 @@
 // src/pages/ProfilePage.jsx
 
 import React, { useState, useRef, useEffect } from 'react';
-import { authAPI, getImageUrl } from '../services/api'; // ✅ Import getImageUrl instead of MEDIA_URL
+import { authAPI, getImageUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import ManufacturerLayout from '../components/ManufacturerLayout';
 import BuyerLayout from '../components/BuyerLayout';
 import AdminLayout from '../components/AdminLayout';
 import { isAdmin } from '../App';
-
-// ✅ REMOVE the local getImageUrl function - we're importing it from api.jsx now
 
 function getLayout(user) {
   if (isAdmin(user))                return AdminLayout;
@@ -37,6 +35,14 @@ export default function ProfilePage() {
   const [removeImage, setRemoveImage]   = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [saving, setSaving]             = useState(false);
+  const [isMobile, setIsMobile]         = useState(window.innerWidth <= 768);
+
+  // ✅ Track screen size
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const [formData, setFormData] = useState({
     first_name:   user?.first_name   || '',
@@ -46,7 +52,6 @@ export default function ProfilePage() {
     company_name: user?.company_name || '',
   });
 
-  // Sync formData when user changes (e.g. after save)
   useEffect(() => {
     setFormData({
       first_name:   user?.first_name   || '',
@@ -57,7 +62,6 @@ export default function ProfilePage() {
     });
   }, [user]);
 
-  // Displayed image: preview while editing, otherwise the saved URL
   const savedImageUrl  = removeImage ? null : getImageUrl(user?.profile_picture);
   const displayImage   = imagePreview || savedImageUrl;
 
@@ -109,8 +113,6 @@ export default function ProfilePage() {
       const response    = await authAPI.updateProfile(payload);
       const updatedUser = response.data.user;
 
-      // Merge updated user into context + localStorage
-      // Keep role/is_staff/is_superuser intact — backend may not return them in update response
       updateUser({
         ...updatedUser,
         role:         updatedUser.role         ?? user?.role,
@@ -118,7 +120,6 @@ export default function ProfilePage() {
         is_superuser: updatedUser.is_superuser ?? user?.is_superuser,
       });
 
-      // Clear editing state
       setImagePreview(null);
       setProfileImage(null);
       setRemoveImage(false);
@@ -145,6 +146,12 @@ export default function ProfilePage() {
   const roleLabel    = getRoleLabel(user);
   const avatarColor  = getAvatarColor(user);
 
+  // ✅ Dynamic grid: 1 column on mobile, 2 columns on desktop
+  const gridStyle = {
+    ...s.formGrid,
+    ...(isMobile ? { gridTemplateColumns: '1fr' } : {})
+  };
+
   return (
     <Layout>
       <div style={s.pageHeader}>
@@ -157,7 +164,10 @@ export default function ProfilePage() {
       <div style={s.card}>
 
         {/* ── Avatar + name ── */}
-        <div style={s.cardHeader}>
+        <div style={{
+          ...s.cardHeader,
+          ...(isMobile ? { flexDirection: 'column', textAlign: 'center' } : {})
+        }}>
           <div style={s.avatarWrap}>
             {displayImage ? (
               <img
@@ -210,21 +220,26 @@ export default function ProfilePage() {
 
         {/* ── Profile Information ── */}
         <div style={s.section}>
-          <div style={s.sectionHeader}>
+          <div style={{
+            ...s.sectionHeader,
+            ...(isMobile ? { flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem' } : {})
+          }}>
             <h3 style={s.sectionTitle}>Profile Information</h3>
             {!editing ? (
               <button style={s.editBtn} onClick={() => setEditing(true)}>✏️ Edit</button>
             ) : (
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button style={s.cancelBtn} onClick={handleCancel} disabled={saving}>Cancel</button>
-                <button style={{ ...s.saveBtn, opacity: saving ? 0.7 : 1 }} onClick={handleSave} disabled={saving}>
+              <div style={{ display: 'flex', gap: '0.5rem', width: isMobile ? '100%' : 'auto' }}>
+                <button style={{ ...s.cancelBtn, flex: isMobile ? 1 : 'none' }} onClick={handleCancel} disabled={saving}>
+                  Cancel
+                </button>
+                <button style={{ ...s.saveBtn, opacity: saving ? 0.7 : 1, flex: isMobile ? 1 : 'none' }} onClick={handleSave} disabled={saving}>
                   {saving ? 'Saving…' : '💾 Save'}
                 </button>
               </div>
             )}
           </div>
 
-          <div style={s.formGrid}>
+          <div style={gridStyle}>
             {[
               { label: 'First Name',   name: 'first_name',   value: formData.first_name   },
               { label: 'Last Name',    name: 'last_name',    value: formData.last_name    },
@@ -249,7 +264,7 @@ export default function ProfilePage() {
         {/* ── Account Details ── */}
         <div style={s.section}>
           <h3 style={s.sectionTitle}>Account Details</h3>
-          <div style={s.formGrid}>
+          <div style={gridStyle}>
             <div style={s.formField}>
               <label style={s.label}>Username</label>
               <p style={s.value}>{user?.username}</p>
@@ -279,7 +294,7 @@ const s = {
   avatarWrap:     { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' },
   avatarImg:      { width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '3px solid #e2e8f0' },
   avatarInitials: { width: 100, height: 100, borderRadius: '50%', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.2rem', fontWeight: 700, flexShrink: 0 },
-  imageActions:   { display: 'flex', gap: '0.5rem' },
+  imageActions:   { display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' },
   imageBtn:       { padding: '0.35rem 0.75rem', backgroundColor: '#27ae60', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 },
   imageBtnRemove: { padding: '0.35rem 0.75rem', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 },
   cardTitle:      { margin: '0 0 0.3rem', color: '#1a2e44', fontSize: '1.3rem', fontWeight: 700 },

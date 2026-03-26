@@ -499,14 +499,14 @@ export default function Home({ onRegisterClick }) {
             <div style={{ fontFamily: "'Fraunces', serif", fontSize: '1.4rem', fontWeight: 700, color: 'var(--green)', marginBottom: '1rem' }}>
               🌿 CinnamonOil
             </div>
-            <p style={{ color: 'rgba(255,255,255,.4)', fontSize: '.88rem', lineHeight: 1.75, maxWidth: 260, marginBottom: '1.5rem' }}>
+            <p style={{ color: 'rgba(255, 255, 255, 0.82)', fontSize: '.88rem', lineHeight: 1.75, maxWidth: 260, marginBottom: '1.5rem' }}>
               The trusted tendering platform for the global cinnamon oil industry — connecting Ceylon's finest distillers with international buyers.
             </p>
             <div style={{ display: 'flex', gap: '.6rem', flexWrap: 'wrap' }}>
               {['LinkedIn', 'Twitter', 'Email'].map(l => (
                 <a key={l} href="#" style={{ fontSize: '.72rem', letterSpacing: '.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,.35)', border: '1px solid rgba(255,255,255,.12)', padding: '.35rem .85rem', borderRadius: '3px', textDecoration: 'none', transition: 'color .2s, border-color .2s' }}
                   onMouseOver={e => { e.currentTarget.style.color = 'var(--green)'; e.currentTarget.style.borderColor = 'var(--green)'; }}
-                  onMouseOut={e => { e.currentTarget.style.color = 'rgba(255,255,255,.35)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.12)'; }}
+                  onMouseOut={e => { e.currentTarget.style.color = 'rgba(255, 255, 255, 0.78)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.82)'; }}
                 >{l}</a>
               ))}
             </div>
@@ -520,13 +520,13 @@ export default function Home({ onRegisterClick }) {
             <div key={col.title}>
               <h5 style={{ fontSize: '.7rem', letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--green)', marginBottom: '1.1rem', fontWeight: 600 }}>{col.title}</h5>
               {col.links.map(l => (
-                <a key={l} className="f-link" href="#" style={{ display: 'block', fontSize: '.88rem', color: 'rgba(255,255,255,.4)', textDecoration: 'none', marginBottom: '.6rem' }}>{l}</a>
+                <a key={l} className="f-link" href="#" style={{ display: 'block', fontSize: '.88rem', color: 'rgba(255, 255, 255, 0.75)', textDecoration: 'none', marginBottom: '.6rem' }}>{l}</a>
               ))}
             </div>
           ))}
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', padding: '1.3rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', maxWidth: 1200, margin: '0 auto', fontSize: '.78rem', color: 'rgba(255,255,255,.2)', letterSpacing: '.04em' }}>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', padding: '1.3rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', maxWidth: 1200, margin: '0 auto', fontSize: '.78rem', color: 'rgba(255, 255, 255, 0.78)', letterSpacing: '.04em' }}>
           <span>© {new Date().getFullYear()} CinnamonOil Tendering System. All rights reserved.</span>
           <span>Crafted with care in Sri Lanka 🇱🇰</span>
         </div>
