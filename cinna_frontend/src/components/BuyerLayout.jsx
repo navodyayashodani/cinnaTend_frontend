@@ -198,8 +198,20 @@ export default function BuyerLayout({ children }) {
               <span style={s.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
             )}
           </button>
+
+          {/* ✅ MOBILE ONLY LOGOUT */}
+          {isMobile && (
+            <button
+              style={{ ...s.navItem, ...s.logoutBtn }}
+              onClick={handleLogout}
+            >
+              <span style={s.navIcon}>🚪</span>
+              Logout
+            </button>
+          )}
         </div>
 
+        {!isMobile && (
         <div style={s.bottomSection}>
           <button style={{ ...s.navItem, ...s.logoutBtn }}
             onClick={handleLogout}
@@ -210,6 +222,7 @@ export default function BuyerLayout({ children }) {
             Logout
           </button>
         </div>
+        )}
       </aside>
 
       <main style={mainStyle}>{children}</main>
@@ -225,7 +238,7 @@ export default function BuyerLayout({ children }) {
 
 const s = {
   root:          { display: 'flex', height: '100vh', backgroundColor: '#f0f2f5', fontFamily: "'Segoe UI', system-ui, sans-serif", overflow: 'hidden', position: 'relative' },
-  sidebar:       { width: 260, minWidth: 260, backgroundColor: '#fff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', overflowY: 'auto', flexShrink: 0 },
+  sidebar:       { width: 260, minWidth: 260, backgroundColor: '#fff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', overflowY: 'hidden', flexShrink: 0 },
 
   mobileMenuBtn: {
     display: 'flex',
