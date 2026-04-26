@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://backend-production-7884.up.railway.app//api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://backend-production-7884.up.railway.app/api';
 
 // Add this line - Media URL without /api suffix for profile pictures and other media
 export const MEDIA_URL = API_URL.replace(/\/api\/?$/, '');
