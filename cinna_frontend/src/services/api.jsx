@@ -17,9 +17,6 @@ export const getImageUrl = (path) => {
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Attach Bearer token to every non-public request
