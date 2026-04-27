@@ -74,7 +74,7 @@ export const authAPI = {
 export const tenderAPI = {
   getAllTenders:      ()           => api.get('/tenders/'),
   getTender:         (id)         => api.get(`/tenders/${id}/`),
-  createTender:      (data)       => api.post('/tenders/', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  createTender: (data) => api.post('/tenders/', data),
   updateTender:      (id, data)   => {
     const headers = data instanceof FormData
       ? { 'Content-Type': 'multipart/form-data' }
